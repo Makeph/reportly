@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<!-- index4 — direction « registre » : éditorial livre-de-comptes. Papier, encre, tampons, réglure.
+     Le produit EST un registre de décisions ; la page en prend la matérialité.
+     Self-contained : aucune dépendance JS externe. -->
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reportly — Le registre de décisions des agences</title>
+<meta name="description" content="Chaque matin à 07:30, Reportly consigne ce qui a été vu, décidé et corrigé sur chaque compte client. Chaque fin de mois, il en tire la preuve : synthèse rédigée, priorité chiffrée, portail à vos couleurs. Essai 14 jours." />
+<meta name="theme-color" content="#F5EFE2" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Reportly — Le registre de décisions des agences" />
+<meta property="og:description" content="Pas un dashboard de plus. Une pièce à conviction : décisions, incidents corrigés, priorité du mois — consignés, datés, prouvés." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+  /* Animations seulement si le visiteur les tolère ; failsafe 3 s si le JS casse. */
+  (function () {
+    try {
+      if (!window.matchMedia || !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('anim');
+        window.__failsafe = setTimeout(function () {
+          document.documentElement.classList.remove('anim');
+        }, 3000);
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root{
+    --paper:#F5EFE2; --paper-2:#FBF7EC; --paper-3:#EDE4CF;
+    --ink:#23261D; --ink-2:#4C4A3C; --faint:#8B8368;
+    --rule:#D9CEB2; --rule-soft:#E6DEC8;
+    --red:#BC3A1D; --red-t:#F1DDD1; --red-line:#DCA489;
+    --green:#2F5D45; --green-t:#DFE7DB;
+    --amber:#9A6E15; --amber-t:#EFE3C2;
+    --disp:'Fraunces',Georgia,serif;
+    --body:'Spectral',Georgia,serif;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --maxw:1160px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink-2);font-family:var(--body);
+    font-size:16.5px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--ink);color:var(--paper)}
+  h1,h2,h3,h4{margin:0;font-family:var(--disp);font-weight:600;color:var(--ink);
+    letter-spacing:-.015em;font-variation-settings:"SOFT" 40,"WONK" 0}
+  em,i{font-style:italic}
+  :focus-visible{outline:2px solid var(--red);outline-offset:3px}
+
+  /* grain papier */
+  body::after{content:"";position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.35;
+    will-change:transform;transform:translateZ(0);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;position:relative}
+  @media(max-width:720px){.wrap{padding:0 18px}}
+  section{position:relative;scroll-margin-top:110px}
+  .block{padding:104px 0}
+  @media(max-width:720px){.block{padding:64px 0}}
+  .rule-double{border-top:4px double var(--rule)}
+
+  /* ---------- reveals ---------- */
+  html.anim .rv{opacity:0;transform:translateY(16px);transition:opacity .8s cubic-bezier(.2,.6,.2,1),transform .8s cubic-bezier(.2,.6,.2,1)}
+  html.anim .rv.in{opacity:1;transform:none}
+  html.anim .rv-stamp{opacity:0;transform:scale(1.7) rotate(-14deg)}
+  html.anim .rv-stamp.in{opacity:1;transform:scale(1) rotate(var(--tilt,-3deg));
+    transition:opacity .18s ease-out,transform .3s cubic-bezier(.2,1.6,.35,1)}
+
+  /* ---------- masthead ---------- */
+  .topline{border-bottom:1px solid var(--rule);background:var(--paper)}
+  .topline .wrap{display:flex;justify-content:space-between;gap:12px;padding-top:9px;padding-bottom:9px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  @media(max-width:720px){.topline .r{display:none}}
+  header.masthead{position:sticky;top:0;z-index:50;background:var(--paper);
+    border-bottom:1px solid var(--rule);transition:box-shadow .25s}
+  header.masthead.scrolled{box-shadow:0 10px 30px -18px rgba(35,38,29,.35)}
+  .mastrow{display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding-top:14px;padding-bottom:14px}
+  .logo{font-family:var(--disp);font-weight:700;font-size:26px;color:var(--ink);letter-spacing:-.02em}
+  .logo .dot{color:var(--red)}
+  .navlinks{display:flex;align-items:center;gap:4px}
+  .navlinks a{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-2);padding:9px 12px;border-bottom:2px solid transparent;transition:.15s}
+  .navlinks a:hover{color:var(--ink);border-bottom-color:var(--red)}
+  @media(max-width:900px){.navlinks a.hidem{display:none}}
+
+  /* ---------- boutons ---------- */
+  .btn{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:500;
+    font-size:13px;letter-spacing:.09em;text-transform:uppercase;padding:15px 24px;border-radius:3px;
+    border:1.5px solid var(--ink);cursor:pointer;transition:transform .15s,box-shadow .2s,background .15s,color .15s;
+    white-space:nowrap}
+  .btn .arr{transition:transform .2s}
+  .btn:hover .arr{transform:translateX(4px)}
+  .btn.primary{background:var(--ink);color:var(--paper);box-shadow:3px 3px 0 rgba(35,38,29,.22)}
+  .btn.primary:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 rgba(188,58,29,.5)}
+  .btn.second{background:transparent;color:var(--ink)}
+  .btn.second:hover{background:var(--paper-2)}
+  .btn.onink{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+  .btn.onink:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 rgba(188,58,29,.6)}
+  .btn.ghostink{background:transparent;color:var(--paper);border-color:rgba(245,239,226,.5)}
+  .btn.ghostink:hover{border-color:var(--paper)}
+  .btn.sm{padding:10px 16px;font-size:11.5px}
+
+  /* ---------- tampon ---------- */
+  .stamp{display:inline-block;font-family:var(--mono);font-weight:600;font-size:11px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--red);border:2px solid var(--red);
+    border-radius:3px;padding:5px 12px;transform:rotate(var(--tilt,-3deg));opacity:.92;
+    box-shadow:inset 0 0 0 1px rgba(188,58,29,.25)}
+  .stamp.green{color:var(--green);border-color:var(--green);box-shadow:inset 0 0 0 1px rgba(47,93,69,.25)}
+  .stamp.amber{color:var(--amber);border-color:var(--amber);box-shadow:inset 0 0 0 1px rgba(154,110,21,.25)}
+
+  /* ---------- entêtes de section ---------- */
+  .kick{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:11.5px;
+    font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--red)}
+  .kick::before{content:"";width:34px;height:1.5px;background:var(--red)}
+  .kick.center{justify-content:center}
+  .kick.center::after{content:"";width:34px;height:1.5px;background:var(--red)}
+  .stitle{font-size:clamp(30px,4vw,46px);line-height:1.08;margin-top:18px}
+  .sintro{max-width:640px;margin-top:18px;font-size:17.5px}
+  .center{text-align:center}
+  .center .sintro{margin-left:auto;margin-right:auto}
+
+  /* ---------- hero ---------- */
+  .hero{padding:84px 0 96px;overflow:hidden}
+  @media(max-width:720px){.hero{padding:48px 0 64px}}
+  .herogrid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:56px;align-items:center}
+  @media(max-width:980px){.herogrid{grid-template-columns:1fr;gap:48px}}
+  .hero h1{font-size:clamp(42px,5.6vw,74px);line-height:1.01;letter-spacing:-.025em;
+    font-variation-settings:"SOFT" 70,"WONK" 1}
+  .hero h1 em{font-style:italic;color:var(--red);font-variation-settings:"SOFT" 90,"WONK" 1}
+  .hero .sub{font-size:clamp(17px,1.9vw,19.5px);max-width:560px;margin-top:26px}
+  .hero .sub b{color:var(--ink);font-weight:600}
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:36px}
+  @media(max-width:480px){.cta-row .btn{flex:1 1 100%;justify-content:center}}
+  .reassure{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:22px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--faint)}
+  .reassure i{font-style:normal;color:var(--green);margin-right:7px;font-weight:600}
+
+  /* dépêche 07:30 */
+  .dispatch{position:relative;background:var(--paper-2);border:1px solid var(--rule);
+    border-radius:2px;transform:rotate(1.1deg);
+    box-shadow:0 30px 60px -30px rgba(35,38,29,.45),0 2px 0 rgba(255,255,255,.6) inset;
+    padding:26px 26px 20px}
+  @media(max-width:980px){.dispatch{max-width:520px;margin:0 auto}}
+  .dispatch::before{content:"";position:absolute;top:-14px;left:50%;transform:translateX(-50%) rotate(-2deg);
+    width:110px;height:28px;background:rgba(188,58,29,.14);border:1px dashed rgba(188,58,29,.3)}
+  .dispatch::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:12px;
+    background-image:radial-gradient(circle at 8px 0,var(--paper) 5px,transparent 5.5px);
+    background-size:16px 12px;background-position:0 2px}
+  .dhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    border-bottom:2px solid var(--ink);padding-bottom:12px}
+  .dhead b{font-family:var(--disp);font-size:19px;color:var(--ink);font-weight:700}
+  .dhead span{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--faint)}
+  .dmeta{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid var(--rule-soft);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .dentry{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--rule-soft);align-items:flex-start}
+  .dentry:last-of-type{border-bottom:none}
+  .dentry .dot{width:9px;height:9px;border-radius:50%;margin-top:7px;flex:0 0 auto}
+  .dentry.red .dot{background:var(--red)}
+  .dentry.amber .dot{background:var(--amber)}
+  .dentry.green .dot{background:var(--green)}
+  .dentry p{margin:3px 0 0;font-size:14px;line-height:1.5}
+  .dentry b{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--ink);font-weight:600}
+  .dtag{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    padding:2px 7px;border-radius:2px;margin-left:8px}
+  .dtag.r{color:var(--red);background:var(--red-t)}
+  .dtag.a{color:var(--amber);background:var(--amber-t)}
+  .dispatch .stamp{position:absolute;right:26px;top:-14px;--tilt:6deg;background:var(--paper-2)}
+  .dfoot{padding-top:12px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--faint)}
+
+  /* ---------- principe : trois actes ---------- */
+  .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:56px;
+    border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  @media(max-width:820px){.acts{grid-template-columns:1fr}}
+  .act{padding:36px 32px 40px;border-left:1px solid var(--rule)}
+  .act:first-child{border-left:none}
+  @media(max-width:820px){.act{border-left:none;border-top:1px solid var(--rule)}
+    .act:first-child{border-top:none}}
+  .act .num{font-family:var(--disp);font-style:italic;font-size:46px;color:var(--red);
+    font-variation-settings:"SOFT" 100,"WONK" 1;line-height:1}
+  .act .when{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin-top:10px}
+  .act h4{font-size:23px;margin-top:8px}
+  .act p{margin:10px 0 0;font-size:15.5px}
+  .bquote{max-width:620px;margin:56px auto 0;text-align:center;font-family:var(--disp);
+    font-style:italic;font-size:clamp(21px,2.6vw,27px);line-height:1.35;color:var(--ink);
+    font-variation-settings:"SOFT" 100,"WONK" 1}
+  .bquote small{display:block;margin-top:14px;font-family:var(--mono);font-style:normal;font-size:11.5px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+
+  /* ---------- registre ---------- */
+  .ledger{position:relative;margin-top:56px;background:var(--paper-2);border:1px solid var(--rule);
+    border-radius:2px;box-shadow:0 34px 70px -38px rgba(35,38,29,.5);overflow:hidden}
+  .ledger::before{content:"";position:absolute;top:0;bottom:0;left:128px;width:1px;
+    background:rgba(188,58,29,.4);z-index:1}
+  @media(max-width:720px){.ledger::before{display:none}}
+  .lhead{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    padding:22px 26px;border-bottom:2px solid var(--ink)}
+  .lhead .lt{font-family:var(--disp);font-weight:700;font-size:19px;color:var(--ink)}
+  .lhead .lt small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;
+    letter-spacing:.08em;color:var(--faint);margin-top:4px}
+  .lrow{position:relative;display:grid;grid-template-columns:104px 1fr auto;gap:20px;align-items:center;
+    padding:20px 26px;border-bottom:1px solid var(--rule-soft)}
+  @media(max-width:720px){.lrow{grid-template-columns:1fr;gap:8px}}
+  .lrow:last-of-type{border-bottom:none}
+  .lrow .ld{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--faint);padding-top:2px}
+  .lrow .lt2{min-width:0}
+  .lrow .lt2 b{font-family:var(--mono);font-size:13.5px;color:var(--ink);font-weight:600;letter-spacing:.01em}
+  .lrow .lt2 p{margin:5px 0 0;font-size:15px;line-height:1.55}
+  .lmore{padding:16px 26px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+    color:var(--faint);background:var(--paper-3);border-top:1px solid var(--rule)}
+
+  /* ---------- comparaison ---------- */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:52px;text-align:left}
+  @media(max-width:820px){.compare{grid-template-columns:1fr}}
+  .cmp{border:1px solid var(--rule);border-radius:2px;padding:34px 34px 38px;background:var(--paper-2)}
+  .cmp h4{font-size:24px}
+  .cmp .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--faint);margin-bottom:12px}
+  .cmp p{margin:12px 0 0;font-size:15.5px}
+  .cmp ul{margin:20px 0 0;padding:0;list-style:none}
+  .cmp li{position:relative;padding:10px 0 10px 30px;font-size:15px;border-top:1px solid var(--rule-soft)}
+  .cmp li::before{content:"✕";position:absolute;left:2px;top:10px;font-family:var(--mono);
+    font-size:12px;color:var(--red)}
+  .cmp.good{background:var(--ink);border-color:var(--ink);color:#C9C4AF;
+    box-shadow:10px 10px 0 rgba(188,58,29,.25)}
+  .cmp.good h4{color:var(--paper)}
+  .cmp.good .lbl{color:rgba(245,239,226,.5)}
+  .cmp.good li{border-top-color:rgba(245,239,226,.14)}
+  .cmp.good li::before{content:"✓";color:#8FB89F}
+  .proofline{max-width:660px;margin:44px auto 0;font-family:var(--disp);font-style:italic;
+    font-size:19.5px;color:var(--ink);text-align:center;font-variation-settings:"SOFT" 100}
+
+  /* ---------- détections ---------- */
+  .dets{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:52px}
+  @media(max-width:900px){.dets{grid-template-columns:1fr}}
+  .det{position:relative;border:1px solid var(--rule);background:var(--paper-2);border-radius:2px;
+    padding:30px 28px 26px}
+  .det h4{font-size:20px}
+  .det p{margin:12px 0 0;font-size:15px}
+  .det .seal{margin-top:20px;padding-top:16px;border-top:1px dashed var(--rule)}
+  .det .glyph{position:absolute;top:24px;right:24px;width:12px;height:12px;border-radius:50%}
+
+  /* ---------- rapport document ---------- */
+  .doc{position:relative;max-width:820px;margin:56px auto 0;background:var(--paper-2);
+    border:1px solid var(--rule);border-radius:2px;text-align:left;
+    box-shadow:0 40px 80px -40px rgba(35,38,29,.55);padding:44px 48px 40px}
+  @media(max-width:720px){.doc{padding:28px 20px 24px}}
+  .doc::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:var(--ink)}
+  .dochead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;
+    border-bottom:2px solid var(--ink);padding-bottom:20px}
+  .dochead .c1 b{font-family:var(--disp);font-size:24px;font-weight:700;color:var(--ink)}
+  .dochead .c1 small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--faint);margin-top:6px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--rule);
+    margin:0 -48px;padding:0 48px}
+  @media(max-width:720px){.kpis{grid-template-columns:repeat(2,1fr);margin:0 -20px;padding:0 20px}}
+  .kpi{padding:22px 18px 20px;border-left:1px solid var(--rule-soft)}
+  .kpi:first-child{border-left:none}
+  @media(max-width:720px){.kpi:nth-child(3){border-left:none}}
+  .kpi .l{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+  .kpi .v{font-family:var(--disp);font-size:29px;font-weight:600;color:var(--ink);margin-top:6px;
+    font-variant-numeric:tabular-nums}
+  .kpi .t{font-family:var(--mono);font-size:11px;margin-top:4px;color:var(--green)}
+  .kpi .t.down{color:var(--green)}
+  .synth{margin-top:26px}
+  .synth .sl{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--faint);margin-bottom:10px}
+  .synth p{margin:0;font-size:16.5px;line-height:1.7;min-height:84px}
+  .synth .caret{display:inline-block;width:8px;height:17px;background:var(--red);vertical-align:-2px;
+    animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .prio{margin-top:24px;border:1.5px solid var(--red);border-radius:2px;padding:20px 22px;
+    background:linear-gradient(rgba(188,58,29,.045),rgba(188,58,29,.045))}
+  .prio .pl{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--red)}
+  .prio p{margin:10px 0 0;font-size:15.5px;color:var(--ink-2)}
+  .prio b{color:var(--ink)}
+  .incline{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:24px;
+    padding-top:18px;border-top:1px dashed var(--rule);font-family:var(--mono);font-size:12px;
+    letter-spacing:.05em;color:var(--faint)}
+  .incline b{color:var(--green);font-size:13px}
+  .doc .stamp{position:absolute;top:34px;right:40px;--tilt:5deg}
+  @media(max-width:720px){.doc .stamp{position:static;display:inline-block;margin-top:14px}}
+  .doccap{margin-top:22px;text-align:center;font-family:var(--mono);font-size:11.5px;
+    letter-spacing:.06em;color:var(--faint)}
+
+  /* ---------- fonctionnement ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:52px}
+  @media(max-width:900px){.steps{grid-template-columns:1fr}}
+  .step{border-top:2px solid var(--ink);padding-top:22px}
+  .step .n{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--red)}
+  .step h4{font-size:21px;margin-top:10px}
+  .step p{margin:10px 0 0;font-size:15.5px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chips span{font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--rule);
+    background:var(--paper-2);border-radius:2px;padding:5px 10px;color:var(--ink-2)}
+
+  /* ---------- engagements ---------- */
+  .vows{display:grid;grid-template-columns:repeat(4,1fr);margin-top:52px;
+    border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  @media(max-width:980px){.vows{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:620px){.vows{grid-template-columns:1fr}}
+  .vow{padding:30px 26px 34px;border-left:1px solid var(--rule)}
+  .vow:first-child{border-left:none}
+  @media(max-width:980px){.vow:nth-child(3){border-left:none}
+    .vow:nth-child(n+3){border-top:1px solid var(--rule)}}
+  @media(max-width:620px){.vow{border-left:none;border-top:1px solid var(--rule)}
+    .vow:first-child{border-top:none}}
+  .vow h4{font-size:18px}
+  .vow p{margin:10px 0 0;font-size:14.5px}
+
+  /* ---------- tarifs ---------- */
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:56px;text-align:left}
+  @media(max-width:900px){.plans{grid-template-columns:1fr;max-width:460px;margin-left:auto;margin-right:auto}}
+  .plan{position:relative;border:1px solid var(--rule);background:var(--paper-2);border-radius:2px;
+    padding:34px 30px;display:flex;flex-direction:column}
+  .plan.hot{border:2px solid var(--ink);box-shadow:10px 10px 0 rgba(188,58,29,.22)}
+  .plan .stamp{position:absolute;top:-14px;right:20px;--tilt:4deg;background:var(--paper-2)}
+  .plan h4{font-size:22px}
+  .plan .price{font-family:var(--disp);font-weight:600;font-size:44px;color:var(--ink);margin-top:14px;
+    font-variant-numeric:tabular-nums}
+  .plan .price small{font-family:var(--mono);font-size:12px;color:var(--faint);letter-spacing:.05em}
+  .plan .for{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--faint);
+    margin-top:6px;padding-bottom:18px;border-bottom:1px solid var(--rule-soft)}
+  .plan ul{margin:18px 0 26px;padding:0;list-style:none;flex:1}
+  .plan li{position:relative;padding:8px 0 8px 26px;font-size:14.5px}
+  .plan li::before{content:"—";position:absolute;left:0;color:var(--red);font-family:var(--mono)}
+  .plan .btn{justify-content:center}
+  .under{max-width:640px;margin:44px auto 0;font-size:15px;text-align:center}
+  .under b{color:var(--ink)}
+  .auditnote{max-width:640px;margin:20px auto 0;text-align:center;padding:18px 24px;
+    border:1px dashed var(--rule);background:var(--paper-2);font-size:14.5px}
+  .auditnote b{color:var(--ink)}
+
+  /* ---------- FAQ ---------- */
+  .faq{max-width:760px;margin:48px auto 0;text-align:left}
+  .faq details{border-top:1px solid var(--rule)}
+  .faq details:last-child{border-bottom:1px solid var(--rule)}
+  .faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;
+    align-items:baseline;padding:20px 4px;font-family:var(--disp);font-weight:600;font-size:18.5px;
+    color:var(--ink)}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+";font-family:var(--mono);font-size:20px;color:var(--red);flex:0 0 auto;
+    transition:transform .2s}
+  .faq details[open] summary::after{transform:rotate(45deg)}
+  .faq .a{padding:0 4px 22px;font-size:15.5px;max-width:660px}
+  .faq .a b{color:var(--ink)}
+
+  /* ---------- finale ---------- */
+  .finalblock{background:var(--ink);color:#B8B49E;padding:110px 0}
+  @media(max-width:720px){.finalblock{padding:70px 0}}
+  .finalblock h2{color:var(--paper);font-size:clamp(34px,4.6vw,56px);line-height:1.05;
+    font-variation-settings:"SOFT" 80,"WONK" 1}
+  .finalblock h2 em{font-style:italic;color:#E4A08B}
+  .finalblock p{max-width:560px;margin:22px auto 0;font-size:17px}
+  .finalblock .cta-row{justify-content:center}
+
+  /* ---------- footer ---------- */
+  footer{padding:44px 0 56px;border-top:1px solid var(--rule)}
+  .foorow{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .flinks{display:flex;flex-wrap:wrap;gap:4px 20px;font-family:var(--mono);font-size:11.5px;
+    letter-spacing:.08em;text-transform:uppercase}
+  .flinks a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+  .disc{margin-top:26px;font-size:12.5px;color:var(--faint);max-width:820px;line-height:1.7}
+</style>
+</head>
+<body id="top">
+
+<div class="topline">
+  <div class="wrap">
+    <span class="l">Registre de décisions — agences SEO · Ads · Growth</span>
+    <span class="r">Édition quotidienne, 07:30 — <span id="today">—</span></span>
+  </div>
+</div>
+
+<header class="masthead" id="mast">
+  <div class="wrap mastrow">
+    <a class="logo" href="#top">Reportly<span class="dot">.</span></a>
+    <nav class="navlinks">
+      <a class="hidem" href="#registre">Le registre</a>
+      <a class="hidem" href="#preuve">La preuve</a>
+      <a class="hidem" href="#rapport">Le rapport</a>
+      <a class="hidem" href="#tarifs">Tarifs</a>
+      <a class="hidem" href="#faq">FAQ</a>
+      <a class="btn primary sm" href="#tarifs">Essai 14 jours</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ======================= HERO ======================= -->
+<section class="hero">
+  <div class="wrap herogrid">
+    <div>
+      <p class="kick rv">Pas un dashboard. Une pièce à conviction.</p>
+      <h1 class="rv">Vos clients ne voient pas le travail.<br>Le registre le rend <em>impossible à rater.</em></h1>
+      <p class="sub rv">Chaque matin à 07:30, Reportly consigne ce qui a été <b>vu, décidé et corrigé</b> sur chaque compte. Chaque fin de mois, il en tire la preuve : synthèse rédigée, priorité chiffrée, incidents résolus — sur un portail à vos couleurs, PDF inclus.</p>
+      <div class="cta-row rv">
+        <a class="btn primary" href="#tarifs">Ouvrir le registre <span class="arr">→</span></a>
+        <a class="btn second" href="#rapport">Lire un rapport d'exemple</a>
+      </div>
+      <p class="reassure rv">
+        <span><i>✓</i>14 jours d'essai</span>
+        <span><i>✓</i>Sans carte bancaire</span>
+        <span><i>✓</i>Données hébergées en Europe</span>
+      </p>
+    </div>
+
+    <div class="dispatch rv" aria-label="Exemple de brief du matin">
+      <div class="dhead"><b>Brief du matin</b><span>Nº 214</span></div>
+      <div class="dmeta"><span>Mardi 10 juin · 07:30</span><span><span class="cnt" data-to="23">0</span> comptes analysés</span></div>
+      <span class="stamp rv-stamp">2 urgences</span>
+      <div class="dentry red">
+        <span class="dot"></span>
+        <div><b>Acme Cosmetics</b><span class="dtag r">Budget</span>
+          <p>Budget Meta épuisé <b>vendredi</b> au rythme actuel (J−3). Lisser ou prévenir aujourd'hui.</p></div>
+      </div>
+      <div class="dentry red">
+        <span class="dot"></span>
+        <div><b>Studio Verde</b><span class="dtag r">Tracking</span>
+          <p>Purchase GA4 à zéro depuis 36 h — Meta compte 23 conversions. Tag probablement mort.</p></div>
+      </div>
+      <div class="dentry amber">
+        <span class="dot"></span>
+        <div><b>Maison Lutea</b><span class="dtag a">Dérive · J3</span>
+          <p>CPA Search +28 % vs moyenne 30 j, troisième jour consécutif.</p></div>
+      </div>
+      <div class="dentry green">
+        <span class="dot"></span>
+        <div><p>20 autres comptes — RAS. Prochaine analyse demain, 07:30.</p></div>
+      </div>
+      <div class="dfoot">Interne — vos clients ne voient jamais ce document.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PRINCIPE ======================= -->
+<section class="block rule-double" id="principe" style="background:var(--paper)">
+  <div class="wrap center">
+    <p class="kick center rv">Le principe</p>
+    <h2 class="stitle rv">Une alerte le matin.<br>Un argument au renouvellement.</h2>
+    <p class="sintro rv">Chaque incident est suivi de sa détection à sa résolution — puis archivé dans le rapport mensuel du client. Rien ne se perd entre les deux.</p>
+
+    <div class="acts">
+      <div class="act rv" style="text-align:left">
+        <div class="num">I.</div>
+        <div class="when">07:30 — chaque matin</div>
+        <h4>Détecter</h4>
+        <p>Tous les comptes analysés avant votre premier café. Budgets, tracking, dérives — triés par gravité, pas par client.</p>
+      </div>
+      <div class="act rv" style="text-align:left">
+        <div class="num">II.</div>
+        <div class="when">Dans la journée</div>
+        <h4>Décider</h4>
+        <p>Chaque alerte devient une décision : assignée, datée, suivie jusqu'à résolution. Le registre s'écrit tout seul — qui a agi, quand, avec quel effet.</p>
+      </div>
+      <div class="act rv" style="text-align:left">
+        <div class="num">III.</div>
+        <div class="when">Fin de mois</div>
+        <h4>Prouver</h4>
+        <p>Le mois est extrait du registre — décisions, incidents corrigés, priorité — et livré au client avec la synthèse rédigée.</p>
+      </div>
+    </div>
+
+    <p class="bquote rv">« Voici ce que nous avons vu,<br>et ce que nous avons fait. »
+      <small>La différence entre dire que vous veillez — et le prouver.</small></p>
+  </div>
+</section>
+
+<!-- ======================= REGISTRE ======================= -->
+<section class="block rule-double" id="registre">
+  <div class="wrap">
+    <div class="center rv">
+      <p class="kick center">Le registre</p>
+      <h2 class="stitle">Vingt-quatre mois d'histoire.<br>Une mémoire qui ne démissionne pas.</h2>
+      <p class="sintro">Tout ce qui a été vu, décidé et traité pour chaque client — daté, suivi, consultable. C'est ce qui reste quand un account manager s'en va. Et ce qui se montre quand un client hésite.</p>
+    </div>
+
+    <div class="ledger rv">
+      <div class="lhead">
+        <div class="lt">Acme Cosmetics — registre<small>Ouvert en juin 2024 · <span class="cnt" data-to="47">0</span> entrées</small></div>
+        <span class="stamp green rv-stamp" style="--tilt:2deg">À jour ce matin</span>
+      </div>
+      <div class="lrow">
+        <span class="ld">Mai 2026</span>
+        <div class="lt2"><b>Réallocation 15 % Search → PMax</b>
+          <p>CPA inférieur de 22 % sur le retargeting. Impact estimé +38 leads/mois.</p></div>
+        <span class="stamp green rv-stamp" style="--tilt:-2deg">Traitée</span>
+      </div>
+      <div class="lrow">
+        <span class="ld">Mai 2026</span>
+        <div class="lt2"><b>Tracking purchase GA4 cassé</b>
+          <p>Détecté à 07:30, corrigé à 11:15 — aucune journée de données perdue.</p></div>
+        <span class="stamp green rv-stamp" style="--tilt:3deg">Résolu en 4 h</span>
+      </div>
+      <div class="lrow">
+        <span class="ld">Avril 2026</span>
+        <div class="lt2"><b>Budget Meta réparti sur 2 audiences gagnantes</b>
+          <p>+12 % de ROAS constaté le mois suivant — consigné au rapport d'avril.</p></div>
+        <span class="stamp green rv-stamp" style="--tilt:-3deg">Suivie</span>
+      </div>
+      <div class="lrow">
+        <span class="ld">Mars 2026</span>
+        <div class="lt2"><b>Budget épuisé à J−4</b>
+          <p>Dépense lissée avant impact — le client prévenu avant de s'en apercevoir.</p></div>
+        <span class="stamp green rv-stamp" style="--tilt:2deg">Résolu</span>
+      </div>
+      <div class="lrow">
+        <span class="ld">Févr. 2026</span>
+        <div class="lt2"><b>Maillage interne du cluster « guides »</b>
+          <p>Pages guides : conversion 2,1× la moyenne du site deux mois plus tard.</p></div>
+        <span class="stamp green rv-stamp" style="--tilt:-2deg">Traitée</span>
+      </div>
+      <div class="lmore">+ 42 entrées depuis juin 2024 — exportables à tout moment. Le registre appartient à l'agence.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= ANTI-CHATGPT ======================= -->
+<section class="block rule-double center" id="preuve" style="background:var(--paper-3)">
+  <div class="wrap">
+    <p class="kick center rv">Pourquoi maintenant</p>
+    <h2 class="stitle rv">Oui, ChatGPT écrit un rapport.<br><em style="font-variation-settings:'SOFT' 100,'WONK' 1">Une fois.</em></h2>
+    <p class="sintro rv">Reportly le fait chaque mois, pour chaque client, avec vos sources, votre ton, votre portail et l'historique des décisions. C'est là que la valeur se crée.</p>
+
+    <div class="compare">
+      <div class="cmp rv">
+        <div class="lbl">Sans système</div>
+        <h4>Le brouillon</h4>
+        <p>Utile pour improviser une synthèse quand vous avez déjà tout préparé.</p>
+        <ul>
+          <li>Vous recollez les chiffres à la main</li>
+          <li>Vous perdez le contexte du mois précédent</li>
+          <li>Les actions dorment dans Slack, l'e-mail et Notion</li>
+          <li>Le client reçoit un document, pas une preuve continue</li>
+        </ul>
+      </div>
+      <div class="cmp good rv">
+        <div class="lbl">Avec Reportly</div>
+        <h4>Le registre</h4>
+        <p>Un système mensuel qui accumule la preuve et la rend lisible.</p>
+        <ul>
+          <li>Sources connectées, seuils calibrés sur chaque compte</li>
+          <li>Narrative rédigée dans votre ton, mois après mois</li>
+          <li>Décisions, incidents et priorités consignés au registre</li>
+          <li>Portail white-label, PDF, historique consultable au renouvellement</li>
+        </ul>
+      </div>
+    </div>
+    <p class="proofline rv">Le produit n'est pas un meilleur dashboard. C'est la couche « valeur perçue » entre votre travail et la décision de rester client.</p>
+  </div>
+</section>
+
+<!-- ======================= DÉTECTIONS ======================= -->
+<section class="block rule-double" id="detections">
+  <div class="wrap">
+    <div class="rv">
+      <p class="kick">Détections</p>
+      <h2 class="stitle">Trois familles d'alertes,<br>calibrées pour ne pas crier au loup.</h2>
+      <p class="sintro">Un outil d'alertes ne vaut que ce que vaut sa précision. Reportly distingue ce qui est certain de ce qui est probable — et ne vous répète jamais deux fois la même chose.</p>
+    </div>
+    <div class="dets">
+      <div class="det rv">
+        <span class="glyph" style="background:var(--red)"></span>
+        <h4>Budgets &amp; rythme</h4>
+        <p>Épuisement anticipé, dépense anormale du jour, plafonds atteints. Détection sur les chiffres réels de dépense.</p>
+        <div class="seal"><span class="stamp rv-stamp" style="--tilt:-2deg">Déterministe</span></div>
+      </div>
+      <div class="det rv">
+        <span class="glyph" style="background:var(--red)"></span>
+        <h4>Tracking &amp; données</h4>
+        <p>Conversions à zéro, écarts plateforme/analytics, tags morts. Détecté en heures — pas découvert à la fin du mois.</p>
+        <div class="seal"><span class="stamp rv-stamp" style="--tilt:2deg">Sources croisées</span></div>
+      </div>
+      <div class="det rv">
+        <span class="glyph" style="background:var(--amber)"></span>
+        <h4>Dérives de performance</h4>
+        <p>CPA, ROAS, leads vs votre historique. Chaque dérive a un état — nouvelle, persistante, en amélioration — signalée une fois, suivie jour après jour.</p>
+        <div class="seal"><span class="stamp amber rv-stamp" style="--tilt:-3deg">Statistique — affichée comme telle</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= RAPPORT ======================= -->
+<section class="block rule-double center" id="rapport" style="background:var(--paper-3)">
+  <div class="wrap">
+    <p class="kick center rv">Le rapport du mois</p>
+    <h2 class="stitle rv">Le mois se termine.<br>Le rapport est déjà écrit.</h2>
+    <p class="sintro rv">Le mois extrait du registre : synthèse en français clair, priorité chiffrée, incidents corrigés — livré sur un portail à vos couleurs, PDF inclus.</p>
+
+    <div class="doc rv">
+      <span class="stamp green rv-stamp">Envoyé au client</span>
+      <div class="dochead">
+        <div class="c1"><b>Acme Cosmetics</b><small>Rapport mensuel — Mai 2026 · préparé par votre agence</small></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="l">Sessions</div><div class="v"><span class="cnt" data-to="48213">0</span></div><div class="t">▲ +12,4 %</div></div>
+        <div class="kpi"><div class="l">Leads</div><div class="v"><span class="cnt" data-to="1284">0</span></div><div class="t">▲ +18,1 %</div></div>
+        <div class="kpi"><div class="l">CPA</div><div class="v"><span class="cnt" data-to="23" data-dec="4">0</span> €</div><div class="t">▼ −9,2 %</div></div>
+        <div class="kpi"><div class="l">ROAS</div><div class="v"><span class="cnt" data-to="4" data-dec="7">0</span>×</div><div class="t">▲ +0,6</div></div>
+      </div>
+      <div class="synth">
+        <div class="sl">Synthèse — rédigée par Reportly, relue en 4 min</div>
+        <p><span id="typeline"></span><span class="caret" id="caret"></span></p>
+      </div>
+      <div class="prio">
+        <div class="pl">Priorité du mois — une seule</div>
+        <p>Réallouer <b>15 % du budget Search</b> vers les campagnes PMax : CPA inférieur de <b>22 %</b> sur le retargeting. Impact estimé : <b>+38 leads/mois</b> à budget constant.</p>
+      </div>
+      <div class="incline"><span>Incidents détectés &amp; corrigés en mai</span><b>3 / 3 ✓</b></div>
+    </div>
+    <p class="doccap rv">Portail white-label : rapports.votre-agence.fr · votre logo, vos couleurs · PDF identique en un clic.</p>
+  </div>
+</section>
+
+<!-- ======================= FONCTIONNEMENT ======================= -->
+<section class="block rule-double" id="fonctionnement">
+  <div class="wrap">
+    <div class="rv">
+      <p class="kick">Fonctionnement</p>
+      <h2 class="stitle">Connecté aujourd'hui.<br>Premier brief demain matin.</h2>
+      <p class="sintro">Configuration en 12 minutes, en autonomie complète — OAuth en deux clics. Un blocage ? Le chat écrit répond sous 4 h ouvrées. Pas d'appel, pas de démo à programmer.</p>
+    </div>
+    <div class="steps">
+      <div class="step rv">
+        <div class="n">01 — ~12 minutes</div>
+        <h4>Connectez vos sources</h4>
+        <p>Reportly importe l'historique de chaque compte et calibre ses seuils sur vos données — pas sur des moyennes génériques.</p>
+        <div class="chips"><span>GA4</span><span>Google Ads</span><span>Search Console</span><span>Meta Ads</span><span>Matomo</span><span>LinkedIn Ads</span></div>
+      </div>
+      <div class="step rv">
+        <div class="n">02 — chaque matin, 07:30</div>
+        <h4>Reportly surveille</h4>
+        <p>Tous les comptes analysés, les alertes triées par gravité, le brief livré dans Slack ou par e-mail. Les journées RAS prennent dix secondes.</p>
+      </div>
+      <div class="step rv">
+        <div class="n">03 — fin de mois, 1 clic</div>
+        <h4>Reportly prouve</h4>
+        <p>Le mois est extrait du registre — synthèse rédigée, priorité chiffrée, incidents corrigés — et livré au client, portail et PDF.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= ENGAGEMENTS ======================= -->
+<section class="block rule-double" id="engagements" style="background:var(--paper)">
+  <div class="wrap">
+    <div class="rv">
+      <p class="kick">Engagements</p>
+      <h2 class="stitle">Ce que Reportly vous garantit.</h2>
+    </div>
+    <div class="vows">
+      <div class="vow rv"><h4>Opérationnel en 12 minutes</h4><p>Sources connectées en autonomie, premier brief dès le lendemain matin. Un blocage ? Le chat écrit vous débloque — pas un agenda à caler.</p></div>
+      <div class="vow rv"><h4>Des alertes dignes de confiance</h4><p>Une urgence est signalée une fois, puis suivie jusqu'à résolution. L'incertain est affiché comme une vigilance — jamais déguisé en urgence.</p></div>
+      <div class="vow rv"><h4>Vos données restent vôtres</h4><p>Hébergement en Union européenne, accès en lecture seule, export complet et suppression définitive à tout moment.</p></div>
+      <div class="vow rv"><h4>Sans engagement</h4><p>Mensuel, résiliable depuis votre compte. Vous partez avec tout votre registre — décisions, incidents, rapports.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= TARIFS ======================= -->
+<section class="block rule-double center" id="tarifs">
+  <div class="wrap">
+    <p class="kick center rv">Tarifs</p>
+    <h2 class="stitle rv">Un prix simple, rentabilisé<br>au premier incident évité.</h2>
+    <p class="sintro rv">14 jours d'essai sur tous les plans, sans carte bancaire. L'analyse initiale de vos comptes est incluse — elle trouve presque toujours quelque chose.</p>
+
+    <div class="plans">
+      <div class="plan rv">
+        <h4>Starter</h4>
+        <div class="price">79 €<small> /mois</small></div>
+        <div class="for">Indépendants — jusqu'à 3 clients</div>
+        <ul>
+          <li>Brief du matin : budgets &amp; tracking</li>
+          <li>Rapport mensuel rédigé + priorité</li>
+          <li>Portail client, PDF inclus</li>
+          <li>Toutes les sources incluses</li>
+        </ul>
+        <a class="btn second" href="mailto:hello@getreportly.fr?subject=Essai%20Starter%20—%20Reportly">Démarrer l'essai</a>
+      </div>
+      <div class="plan hot rv">
+        <span class="stamp rv-stamp">Le plus choisi</span>
+        <h4>Growth</h4>
+        <div class="price">149 €<small> /mois</small></div>
+        <div class="for">Agences — jusqu'à 20 clients</div>
+        <ul>
+          <li>Tout Starter</li>
+          <li>Dérives de performance avec suivi d'état</li>
+          <li>Brief dans Slack + assignation d'alertes</li>
+          <li>Registre complet : historique illimité</li>
+        </ul>
+        <a class="btn primary" href="mailto:hello@getreportly.fr?subject=Essai%20Growth%20—%20Reportly">Démarrer l'essai <span class="arr">→</span></a>
+      </div>
+      <div class="plan rv">
+        <h4>Pro</h4>
+        <div class="price">299 €<small> /mois</small></div>
+        <div class="for">Structures — clients illimités</div>
+        <ul>
+          <li>Tout Growth</li>
+          <li>White-label complet + votre domaine</li>
+          <li>Templates par secteur</li>
+          <li>Support prioritaire &lt; 1 h</li>
+        </ul>
+        <a class="btn second" href="mailto:hello@getreportly.fr?subject=Essai%20Pro%20—%20Reportly">Démarrer l'essai</a>
+      </div>
+    </div>
+
+    <p class="under rv">Une question avant de vous lancer ? <a href="mailto:hello@getreportly.fr" style="text-decoration:underline;text-underline-offset:3px">hello@getreportly.fr</a> — <b>réponse écrite sous 4 h ouvrées</b>. Tout se fait en ligne : pas d'appel, pas de démo à programmer.</p>
+    <p class="auditnote rv"><b>Dès la connexion :</b> Reportly audite 2 ou 3 de vos comptes, repère où la valeur est mal perçue, et vous montre en quelques minutes ce qu'il transformerait en preuve mensuelle.</p>
+  </div>
+</section>
+
+<!-- ======================= FAQ ======================= -->
+<section class="block rule-double" id="faq" style="background:var(--paper)">
+  <div class="wrap">
+    <div class="center rv">
+      <p class="kick center">FAQ</p>
+      <h2 class="stitle">Questions fréquentes.</h2>
+    </div>
+    <div class="faq rv">
+      <details open>
+        <summary>Comment évitez-vous les fausses alertes ?</summary>
+        <div class="a">Trois garde-fous. <b>Les détections certaines d'abord</b> : budgets et tracking sont déterministes, pas statistiques. <b>Le suivi d'état ensuite</b> : une dérive est signalée une fois puis suivie — jamais répétée chaque matin. <b>La calibration enfin</b> : les seuils s'ajustent sur l'historique de chaque compte, pas sur des moyennes génériques.</div>
+      </details>
+      <details>
+        <summary>Et si rien ne casse ?</summary>
+        <div class="a">Tant mieux — le brief RAS se lit en dix secondes. Et la surveillance n'est jamais perdue : tout ce qui a été vérifié alimente le rapport mensuel du client. <b>L'analyse initiale, elle, trouve presque toujours quelque chose</b> dans l'historique.</div>
+      </details>
+      <details>
+        <summary>Que devient le registre quand un account manager s'en va ?</summary>
+        <div class="a">Il reste — c'est précisément le but. <b>La mémoire des comptes appartient à l'agence</b>, pas aux personnes qui tournent : son remplaçant lit vingt-quatre mois de décisions en une heure, au lieu de fouiller des fils Slack.</div>
+      </details>
+      <details>
+        <summary>Mes clients voient-ils le brief du matin ?</summary>
+        <div class="a">Non. Le brief est <b>interne, pour votre équipe</b>. Le client ne voit que le rapport mensuel — dont la rubrique « incidents détectés &amp; corrigés », formulée à votre avantage : vous avez vu, vous avez agi.</div>
+      </details>
+      <details>
+        <summary>Que se passe-t-il avec mes données et celles de mes clients ?</summary>
+        <div class="a">Accès <b>en lecture seule</b> à vos sources, hébergement en <b>Union européenne</b>, aucune revente, aucun entraînement de modèle sur vos données. Export complet et suppression définitive à tout moment.</div>
+      </details>
+      <details>
+        <summary>Quelles sources sont supportées ?</summary>
+        <div class="a">GA4, Google Ads, Search Console, Meta Ads, Matomo et LinkedIn Ads aujourd'hui. Une source vous manque ? Écrivez-nous : <b>les intégrations sont priorisées avec nos clients</b>, feuille de route publique.</div>
+      </details>
+      <details>
+        <summary>Et si je veux annuler ?</summary>
+        <div class="a">Depuis votre compte, effet à la fin du mois en cours, <b>sans préavis</b>. Vous exportez tout votre registre avant de partir.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= FINALE ======================= -->
+<section class="finalblock center">
+  <div class="wrap">
+    <h2 class="rv">Dans douze mois, vous aurez<br><em>douze mois de preuves.</em></h2>
+    <p class="rv">Le registre commence à s'écrire demain matin, 07:30. Quatorze jours d'essai sur vos vrais comptes, premier rapport à la fin du mois.</p>
+    <div class="cta-row rv" style="margin-top:36px">
+      <a class="btn onink" href="#tarifs">Ouvrir le registre <span class="arr">→</span></a>
+      <a class="btn ghostink" href="mailto:hello@getreportly.fr?subject=Question%20—%20Reportly">Poser une question</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foorow">
+      <a class="logo" href="#top" style="font-size:21px">Reportly<span class="dot">.</span></a>
+      <div class="flinks">
+        <a href="#registre">Le registre</a>
+        <a href="#preuve">La preuve</a>
+        <a href="#rapport">Le rapport</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="#faq">FAQ</a>
+        <a href="mailto:hello@getreportly.fr">Contact</a>
+      </div>
+    </div>
+    <p class="disc">Reportly — getreportly.fr. Le registre de décisions des agences SEO, Ads et Growth : brief du matin, suivi des actions, synthèse rédigée, priorité du mois, portail white-label. Données hébergées en Union européenne. Les chiffres affichés sont des données d'exemple. Composé en Fraunces, Spectral &amp; IBM Plex Mono.</p>
+    <p class="disc" style="margin-top:8px">© <span id="yr"></span> Reportly.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* date du jour dans la manchette */
+  try{
+    var d = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('today').textContent = d;
+  }catch(e){}
+
+  /* ombre du masthead */
+  var mast = document.getElementById('mast');
+  function onScroll(){ mast.classList.toggle('scrolled', window.scrollY > 8); }
+  onScroll(); addEventListener('scroll', onScroll, {passive:true});
+
+  var root = document.documentElement;
+  var FULL = "Mai confirme la reprise : le trafic organique progresse de 12 %, porté par le cluster « routines soin », pendant que le payant gagne en efficacité — CPA en baisse de 9 % à budget constant. Trois incidents détectés en cours de mois, tous corrigés avant impact visible.";
+  var typeEl = document.getElementById('typeline');
+  var caret = document.getElementById('caret');
+
+  if (!root.classList.contains('anim') || !('IntersectionObserver' in window)){
+    root.classList.remove('anim');
+    if (typeEl){ typeEl.textContent = FULL; caret.style.display = 'none'; }
+    document.querySelectorAll('.cnt').forEach(function(el){
+      var dec = el.dataset.dec;
+      el.textContent = (+el.dataset.to).toLocaleString('fr-FR') + (dec ? ',' + dec : '');
+    });
+    return;
+  }
+  clearTimeout(window.__failsafe);
+
+  /* filet de sécurité : si rien ne s'est révélé 4 s après que la page est visible, tout montrer */
+  function armSafety(){
+    setTimeout(function(){
+      if (!document.querySelectorAll('.rv.in').length) root.classList.remove('anim');
+    }, 4000);
+  }
+  if (document.visibilityState === 'visible') armSafety();
+  else addEventListener('visibilitychange', function h(){
+    if (!document.hidden){ removeEventListener('visibilitychange', h); armSafety(); }
+  });
+
+  /* reveals + tampons (les tampons « claquent » un cran après leur bloc) */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      var el = en.target;
+      io.unobserve(el);
+      el.classList.add('in');
+      el.querySelectorAll('.rv-stamp').forEach(function(st, i){
+        setTimeout(function(){ st.classList.add('in'); }, 420 + i * 160);
+      });
+    });
+  }, {rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+  /* tampons hors .rv */
+  document.querySelectorAll('.rv-stamp').forEach(function(st){
+    if (!st.closest('.rv')) io.observe(st);
+  });
+
+  /* compteurs, format fr-FR */
+  var ioC = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      var el = en.target; ioC.unobserve(el);
+      var to = +el.dataset.to, dec = el.dataset.dec, t0 = null;
+      function frame(t){
+        if (!t0) t0 = t;
+        var p = Math.min((t - t0) / 1300, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(to * eased).toLocaleString('fr-FR') + (dec ? ',' + dec : '');
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    });
+  }, {rootMargin:'0px 0px -5% 0px'});
+  document.querySelectorAll('.cnt').forEach(function(el){ ioC.observe(el); });
+
+  /* machine à écrire pour la synthèse */
+  if (typeEl){
+    var ioT = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (!en.isIntersecting) return;
+        ioT.disconnect();
+        var i = 0;
+        var iv = setInterval(function(){
+          typeEl.textContent = FULL.slice(0, ++i);
+          if (i >= FULL.length){ clearInterval(iv); caret.style.display = 'none'; }
+        }, 18);
+      });
+    }, {rootMargin:'0px 0px -10% 0px'});
+    ioT.observe(typeEl);
+  }
+})();
+</script>
+</body>
+</html>

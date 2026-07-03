@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reportly — Le layer de rétention client des agences</title>
+<meta name="description" content="Reportly transforme vos données marketing en preuve mensuelle de valeur : narrative client, décisions, incidents corrigés, portail white-label, PDF et historique. Essai 14 jours." />
+<meta name="theme-color" content="#F8FAFC" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Reportly — Le layer de rétention client des agences" />
+<meta property="og:description" content="Chaque mois, pour chaque client : narrative, décision, preuve du travail fait, portail et PDF à vos couleurs." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>
+  /* Gate animations on motion preference; 3.5s failsafe reveals everything if JS/CDN fails. */
+  (function () {
+    try {
+      if (!window.matchMedia || !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('anim');
+        window.__failsafe = setTimeout(function () {
+          document.documentElement.classList.add('anim-off');
+        }, 3500);
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root{
+    --bg:#F8FAFC; --white:#FFFFFF; --sky:#EEF4FB;
+    --navy:#0B2239; --body:#3D5468; --ter:#7C8FA3;
+    --blue:#1F6BFF; --blue-d:#1655D6; --blue-t:#E8F0FF;
+    --amber:#F59E0B; --amber-t:#FEF3DF; --amber-d:#B45309; --amber-l:#F3D9A4;
+    --red:#DC2626; --red-t:#FEF1F1; --red-l:#F2C4C4; --red-d:#991B1B;
+    --green:#16A34A; --green-t:#F0FBF4; --green-l:#BBE5C8;
+    --line:#E2E8F0;
+    --disp:'Bricolage Grotesque','Figtree',sans-serif;
+    --sans:'Figtree',-apple-system,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --maxw:1180px;
+    --sh-s:0 1px 2px rgba(11,34,57,.05);
+    --sh-m:0 6px 16px -6px rgba(11,34,57,.10);
+    --sh-l:0 24px 48px -16px rgba(11,34,57,.18);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--body);font-family:var(--sans);
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--blue-t);color:var(--navy)}
+  h1,h2,h3,h4{margin:0;font-family:var(--disp);font-weight:700;letter-spacing:-.02em;color:var(--navy)}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:4px}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1}
+  @media(max-width:767px){.wrap{padding:0 16px}}
+  section{position:relative;scroll-margin-top:84px}
+  .block{padding:96px 0}
+  @media(max-width:767px){.block{padding:56px 0}}
+
+  /* ---------- nav ---------- */
+  nav{position:fixed;top:0;left:0;right:0;z-index:40;height:68px;display:flex;align-items:center;
+    background:rgba(248,250,252,.85);backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent;transition:border-color .25s,box-shadow .25s,background .25s}
+  nav.scrolled{background:rgba(255,255,255,.92);border-bottom-color:var(--line);box-shadow:var(--sh-s)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
+  .logo{font-family:var(--disp);font-weight:700;font-size:21px;color:var(--navy)}
+  .logo .dot{color:var(--blue)}
+  .navlinks{display:flex;align-items:center;gap:2px}
+  .navlinks a{color:var(--body);font-size:14.5px;font-weight:500;padding:8px 14px;border-radius:8px;transition:.15s}
+  .navlinks a:hover{color:var(--navy);background:var(--blue-t)}
+  @media(max-width:860px){.navlinks a.hidem{display:none}}
+
+  /* ---------- buttons ---------- */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15.5px;
+    padding:13px 26px;border-radius:10px;border:1px solid transparent;cursor:pointer;font-family:var(--sans);
+    transition:background .15s,border-color .15s,color .15s,box-shadow .2s,transform .15s;white-space:nowrap}
+  .btn .arr{transition:transform .2s}
+  .btn:hover .arr{transform:translateX(3px)}
+  .btn.primary{background:var(--blue);color:#fff;box-shadow:0 4px 14px -4px rgba(31,107,255,.45)}
+  .btn.primary:hover{background:var(--blue-d);transform:translateY(-1px);box-shadow:0 8px 20px -6px rgba(31,107,255,.5)}
+  .btn.second{background:var(--white);color:var(--navy);border-color:#CBD5E1}
+  .btn.second:hover{border-color:#94A8BE;background:var(--bg)}
+  .btn.onnavy{background:var(--blue);color:#fff}
+  .btn.onnavy:hover{background:var(--blue-d)}
+  .btn.outwhite{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
+  .btn.outwhite:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+  .btn.sm{padding:9px 18px;font-size:14px;border-radius:9px}
+
+  /* ---------- hero ---------- */
+  .hero{padding:152px 0 56px;text-align:center;position:relative}
+  @media(max-width:767px){.hero{padding:116px 0 36px}}
+  .dotgrid{position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(11,34,57,.10) 1px,transparent 1px);
+    background-size:26px 26px;
+    -webkit-mask-image:radial-gradient(70% 55% at 50% 12%,#000 0%,transparent 100%);
+            mask-image:radial-gradient(70% 55% at 50% 12%,#000 0%,transparent 100%)}
+  .eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.1em;color:var(--blue);
+    text-transform:uppercase}
+  .hero h1{font-size:clamp(35px,5.4vw,62px);line-height:1.08;margin:20px auto 0;max-width:900px}
+  .hero .sub{font-size:clamp(16.5px,2vw,19px);color:var(--body);max-width:680px;margin:22px auto 0}
+  .hero .sub b{color:var(--navy);font-weight:600}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px;justify-content:center}
+  @media(max-width:480px){.cta-row .btn{flex:1 1 100%}}
+  .reassure{display:flex;gap:8px 22px;justify-content:center;flex-wrap:wrap;margin-top:20px;
+    font-size:13.5px;color:var(--ter)}
+  .reassure span{display:flex;align-items:center;gap:7px}
+  .reassure i{font-style:normal;color:var(--green);font-weight:700}
+
+  /* ---------- browser frame ---------- */
+  .stage{margin-top:56px}
+  .browser{max-width:880px;margin:0 auto;border-radius:14px;overflow:hidden;text-align:left;
+    border:1px solid var(--line);background:var(--white);box-shadow:var(--sh-l)}
+  .browser.wide{max-width:1020px}
+  .chrome{display:flex;align-items:center;gap:14px;padding:11px 16px;background:#F1F5F9;
+    border-bottom:1px solid var(--line)}
+  .chrome .dots{display:flex;gap:6px}
+  .chrome .dots i{width:11px;height:11px;border-radius:50%;background:#CBD5E1}
+  .chrome .url{flex:1;max-width:420px;margin:0 auto;font-family:var(--mono);font-size:11.5px;color:var(--ter);
+    background:var(--white);border:1px solid var(--line);border-radius:7px;padding:5px 14px;text-align:center}
+
+  /* ---------- morning brief mockup ---------- */
+  .bhead{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 22px;
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .bhead .bt{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--navy)}
+  .bhead .bt small{display:block;font-family:var(--mono);font-size:11px;color:var(--ter);font-weight:400;margin-top:3px}
+  .sums{display:flex;gap:8px;flex-wrap:wrap}
+  .sum{font-family:var(--mono);font-size:11px;font-weight:500;border-radius:999px;padding:5px 12px;letter-spacing:.02em}
+  .sum.r{color:var(--red-d);background:var(--red-t);border:1px solid var(--red-l)}
+  .sum.a{color:var(--amber-d);background:var(--amber-t);border:1px solid var(--amber-l)}
+  .sum.g{color:#14532D;background:var(--green-t);border:1px solid var(--green-l)}
+  .alerts{padding:14px 16px 18px;display:flex;flex-direction:column;gap:10px}
+  .alert{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;
+    padding:15px 16px;background:var(--white);transition:border-color .15s,box-shadow .15s}
+  .alert:hover{box-shadow:var(--sh-m)}
+  .alert .sev{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:0 0 auto}
+  .alert.red{background:linear-gradient(0deg,var(--white),var(--white)),var(--white);border-color:var(--red-l)}
+  .alert.red .sev{background:var(--red)}
+  .alert.amber{border-color:var(--amber-l)}
+  .alert.amber .sev{background:var(--amber)}
+  .alert.green .sev{background:var(--green)}
+  .alert .ac{flex:1;min-width:0}
+  .alert .atop{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:5px}
+  .alert .atop b{font-family:var(--disp);font-size:14.5px;color:var(--navy);font-weight:600}
+  .atag{font-family:var(--mono);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;
+    border-radius:5px;padding:2.5px 8px}
+  .atag.budget{color:var(--red-d);background:var(--red-t)}
+  .atag.track{color:var(--red-d);background:var(--red-t)}
+  .atag.drift{color:var(--amber-d);background:var(--amber-t)}
+  .astate{font-family:var(--mono);font-size:10px;color:var(--ter);border:1px solid var(--line);
+    border-radius:5px;padding:2.5px 8px;text-transform:uppercase;letter-spacing:.06em}
+  .alert p{margin:0;font-size:13.5px;line-height:1.55;color:var(--body)}
+  .alert p b{color:var(--navy)}
+  .alert .go{font-family:var(--mono);font-size:11.5px;color:var(--blue);font-weight:500;white-space:nowrap;margin-top:4px}
+  .alert.green{align-items:center}
+  .alert.green p{color:var(--ter)}
+
+  /* ---------- monthly report mockup ---------- */
+  .app{display:grid;grid-template-columns:1fr 300px;min-height:400px}
+  @media(max-width:880px){.app{grid-template-columns:1fr}}
+  .main{padding:22px;border-right:1px solid var(--line)}
+  @media(max-width:880px){.main{border-right:0;border-bottom:1px solid var(--line)}}
+  .apphead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .apphead .client{font-family:var(--disp);font-weight:600;font-size:16px;color:var(--navy)}
+  .apphead .client small{display:block;font-family:var(--mono);font-size:11px;color:var(--ter);font-weight:400;margin-top:3px}
+  .badge{font-family:var(--mono);font-size:10.5px;color:var(--green);border:1px solid var(--green-l);
+    background:var(--green-t);border-radius:999px;padding:4px 11px;letter-spacing:.03em;white-space:nowrap}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:680px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:13px;box-shadow:var(--sh-s)}
+  .kpi .l{font-size:10.5px;color:var(--ter);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  .kpi .v{font-family:var(--disp);font-size:clamp(17px,2vw,22px);font-weight:700;margin-top:5px;color:var(--navy)}
+  .kpi .t{font-family:var(--mono);font-size:11px;margin-top:4px;color:var(--green)}
+  .chartbox{margin-top:14px;background:var(--white);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--sh-s)}
+  .chartbox .cl{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ter);margin-bottom:8px;flex-wrap:wrap;gap:6px}
+  .legend{display:flex;gap:14px;font-family:var(--mono);font-size:10.5px}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend b{width:14px;height:3px;border-radius:2px;display:inline-block}
+  .incstrip{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    border:1px solid var(--green-l);background:var(--green-t);border-radius:10px;padding:11px 14px;
+    font-size:13px;color:#14532D}
+  .incstrip b{font-family:var(--mono);font-weight:500}
+  .side{padding:22px;display:flex;flex-direction:column;gap:12px;background:#FBFCFE}
+  .prio{border:1px solid var(--amber-l);background:var(--amber-t);border-radius:10px;padding:15px}
+  .prio .pl{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;color:var(--amber-d);
+    text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;font-weight:500}
+  .prio .pl::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--amber)}
+  .prio p{margin:0;font-size:13.5px;line-height:1.55;color:#5C4A22}
+  .prio p b{color:#3D3012}
+  .prio .act{margin-top:12px;display:inline-flex;font-size:12.5px;font-weight:600;color:#fff;
+    background:var(--amber);border-radius:8px;padding:7px 13px}
+  .synth{border:1px solid var(--line);border-radius:10px;padding:15px;background:var(--white);box-shadow:var(--sh-s)}
+  .synth .sl{font-family:var(--mono);font-size:10.5px;color:var(--blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;font-weight:500}
+  .synth p{margin:0;font-size:12.5px;color:var(--body);line-height:1.6}
+  .typing::after{content:"▍";color:var(--blue);animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  html.anim-off .typing::after,html:not(.anim) .typing::after{display:none}
+
+  /* ---------- section headings ---------- */
+  .shead{--w:30px;font-family:var(--mono);font-size:12px;color:var(--blue);text-transform:uppercase;
+    letter-spacing:.1em;margin:0 0 14px;display:flex;align-items:center;gap:10px;font-weight:500}
+  .shead::before{content:"";width:var(--w);height:2px;background:var(--blue);flex:0 0 auto;border-radius:2px}
+  .shead.center{justify-content:center}
+  .shead.center::after{content:"";width:var(--w);height:2px;background:var(--blue);flex:0 0 auto;border-radius:2px}
+  .stitle{font-size:clamp(27px,3.8vw,42px);line-height:1.14;margin:0 0 16px}
+  .sintro{color:var(--body);max-width:620px;font-size:17px}
+  .center{text-align:center}
+  .center .sintro{margin-left:auto;margin-right:auto}
+
+  /* ---------- bridge (détecter → corriger → prouver) ---------- */
+  .bridge{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;position:relative}
+  @media(max-width:880px){.bridge{grid-template-columns:1fr}}
+  .bstep{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:26px;box-shadow:var(--sh-s);position:relative}
+  .bstep .bn{font-family:var(--mono);font-size:11.5px;color:var(--blue);letter-spacing:.08em;font-weight:500;text-transform:uppercase}
+  .bstep h4{font-size:19px;margin:12px 0 8px}
+  .bstep p{color:var(--body);font-size:14.5px;margin:0;line-height:1.6}
+  .bstep::after{content:"→";position:absolute;right:-15px;top:50%;transform:translateY(-50%);
+    font-size:18px;color:var(--ter);z-index:2}
+  .bstep:last-child::after{display:none}
+  @media(max-width:880px){.bstep::after{display:none}}
+  .bquote{margin:40px auto 0;max-width:680px;text-align:center;font-family:var(--disp);
+    font-size:clamp(18px,2.4vw,23px);font-weight:600;color:var(--navy);line-height:1.45}
+  .bquote em{font-style:normal;color:var(--blue)}
+
+  /* ---------- detections ---------- */
+  .dets{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px}
+  @media(max-width:880px){.dets{grid-template-columns:1fr}}
+  .det{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:26px;box-shadow:var(--sh-s)}
+  .det .dh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .det .dh i{width:11px;height:11px;border-radius:50%;flex:0 0 auto;font-style:normal}
+  .det h4{font-size:18px}
+  .det p{color:var(--body);font-size:14.5px;margin:0 0 14px;line-height:1.6}
+  .det .rel{font-family:var(--mono);font-size:11px;color:var(--ter);border-top:1px solid var(--line);padding-top:12px}
+  .det .rel b{color:var(--body);font-weight:500}
+
+  /* ---------- positioning ---------- */
+  .positioning{background:var(--navy);color:#fff}
+  .positioning .shead{color:#93C5FD}
+  .positioning .shead::before,.positioning .shead::after{background:#93C5FD}
+  .positioning .stitle{color:#fff}
+  .positioning .sintro{color:rgba(255,255,255,.76)}
+  .positioning .compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:42px;text-align:left}
+  @media(max-width:820px){.positioning .compare{grid-template-columns:1fr}}
+  .cmp{border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:26px;background:rgba(255,255,255,.06)}
+  .cmp.good{background:#fff;color:var(--body);border-color:#fff;box-shadow:var(--sh-l)}
+  .cmp h4{font-size:20px;margin-bottom:10px;color:inherit}
+  .cmp.good h4{color:var(--navy)}
+  .cmp p{margin:0;color:rgba(255,255,255,.74);font-size:15px;line-height:1.65}
+  .cmp.good p{color:var(--body)}
+  .cmp ul{margin:18px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+  .cmp li{position:relative;padding-left:22px;font-size:14.5px;line-height:1.55;color:rgba(255,255,255,.82)}
+  .cmp.good li{color:var(--body)}
+  .cmp li::before{content:"";position:absolute;left:0;top:.65em;width:8px;height:8px;border-radius:50%;background:#93C5FD}
+  .cmp.good li::before{background:var(--green)}
+  .proofline{margin:28px auto 0;max-width:760px;color:rgba(255,255,255,.84);font-size:17px}
+
+  /* ---------- example tabs ---------- */
+  .tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:40px 0 22px}
+  .tab{font-family:var(--sans);font-size:14px;font-weight:600;color:var(--body);padding:10px 20px;
+    border:1px solid var(--line);border-radius:999px;cursor:pointer;background:var(--white);transition:.18s}
+  .tab:hover{color:var(--navy);border-color:#AEC4DD}
+  .tab.on{color:#fff;background:var(--blue);border-color:var(--blue)}
+  .panel{display:none;max-width:860px;margin:0 auto;border:1px solid var(--line);border-radius:14px;
+    background:var(--white);padding:32px;box-shadow:var(--sh-m);text-align:left}
+  .panel.on{display:block;animation:pin .4s ease}
+  @keyframes pin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  html:not(.anim) .panel.on,html.anim-off .panel.on{animation:none}
+  .panel h3{font-size:21px;margin-bottom:6px}
+  .panel .ph{font-family:var(--mono);font-size:11px;color:var(--ter);margin-bottom:20px}
+  .rep p{color:var(--body);font-size:15.5px;margin:0 0 14px;line-height:1.7}
+  .rep p b{color:var(--navy)}
+  .rep ul{margin:0 0 14px;padding:0;list-style:none}
+  .rep li{color:var(--body);font-size:15px;padding:7px 0 7px 26px;position:relative}
+  .rep li::before{content:"→";position:absolute;left:0;color:var(--blue)}
+  .stackgap{display:flex;flex-direction:column;gap:10px}
+  .mrow{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);
+    border-radius:10px;padding:13px 16px;background:var(--white);transition:.15s}
+  .mrow:hover{border-color:var(--blue)}
+  .mrow .mn{font-weight:600;font-size:14px;color:var(--navy)}
+  .mrow .mn small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ter);font-weight:400;margin-top:2px}
+  .mrow .dl{font-family:var(--mono);font-size:11.5px;color:var(--blue);display:flex;gap:14px;font-weight:500}
+  /* ---------- registre : timeline 24 mois ---------- */
+  .atag.pri{color:var(--amber-d);background:var(--amber-t)}
+  .atag.dec{color:var(--blue-d);background:var(--blue-t)}
+  .ledger{max-width:760px;margin:48px auto 0;background:var(--white);border:1px solid var(--line);
+    border-radius:14px;box-shadow:var(--sh-m);overflow:hidden;text-align:left}
+  .lhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .lhead .lt{font-family:var(--disp);font-weight:700;font-size:16px;color:var(--navy)}
+  .lhead .lt small{display:block;font-family:var(--mono);font-size:11px;color:var(--ter);font-weight:400;margin-top:3px}
+  .timeline{position:relative;padding:12px 24px 22px}
+  .tentry{position:relative;display:flex;gap:14px;align-items:flex-start;
+    padding:13px 0 13px 22px;border-left:2px solid var(--line);margin-left:8px}
+  .tentry::before{content:"";position:absolute;left:-6px;top:19px;width:10px;height:10px;border-radius:50%;
+    background:var(--blue);border:2px solid var(--white);box-shadow:0 0 0 1px var(--line)}
+  .tentry.inc::before{background:var(--red)}
+  .tentry.pri::before{background:var(--amber)}
+  .tentry .td{font-family:var(--mono);font-size:11px;color:var(--ter);min-width:74px;padding-top:3px;flex:0 0 auto}
+  .tentry .tc{flex:1;min-width:0}
+  .tentry .tt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px}
+  .tentry .tt b{font-size:14px;color:var(--navy);font-weight:600}
+  .tentry .tc p{margin:0;font-size:13.5px;color:var(--body);line-height:1.55}
+  .tres{font-family:var(--mono);font-size:10.5px;color:#14532D;background:var(--green-t);
+    border:1px solid var(--green-l);border-radius:5px;padding:2.5px 8px;white-space:nowrap;margin-top:3px}
+  .tmore{padding:14px 24px;border-top:1px dashed var(--line);font-family:var(--mono);font-size:12px;color:var(--ter);text-align:center}
+  @media(max-width:560px){.tentry{flex-wrap:wrap}.tentry .td{min-width:0}}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px}
+  @media(max-width:880px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:28px;
+    box-shadow:var(--sh-s);transition:box-shadow .2s,transform .2s}
+  .step:hover{box-shadow:var(--sh-m);transform:translateY(-3px)}
+  .step .n{font-family:var(--mono);font-size:11.5px;color:var(--blue);letter-spacing:.08em;font-weight:500}
+  .step h4{font-size:19px;margin:14px 0 8px}
+  .step p{color:var(--body);font-size:14.5px;margin:0;line-height:1.6}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .chips span{font-family:var(--mono);font-size:11px;color:var(--body);border:1px solid var(--line);
+    border-radius:6px;padding:4px 9px;background:var(--bg)}
+
+  /* ---------- engagements ---------- */
+  .vows{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:48px}
+  @media(max-width:760px){.vows{grid-template-columns:1fr}}
+  .vow{border:1px solid var(--line);border-radius:14px;padding:26px;background:var(--white);box-shadow:var(--sh-s)}
+  .vow h4{font-size:18px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+  .vow h4::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--blue);flex:0 0 auto}
+  .vow p{color:var(--body);font-size:14.5px;margin:0;line-height:1.6}
+
+  /* ---------- pricing ---------- */
+  .pricing{background:var(--sky)}
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px;align-items:stretch}
+  @media(max-width:880px){.plans{grid-template-columns:1fr;max-width:440px;margin-left:auto;margin-right:auto}}
+  .plan{border:1px solid var(--line);border-radius:16px;padding:30px;background:var(--white);
+    display:flex;flex-direction:column;position:relative;box-shadow:var(--sh-s);transition:transform .2s,box-shadow .2s}
+  .plan:hover{transform:translateY(-3px);box-shadow:var(--sh-m)}
+  .plan.hot{border-color:var(--blue);box-shadow:0 12px 32px -10px rgba(31,107,255,.25)}
+  .plan .tagtop{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-family:var(--sans);
+    font-size:11.5px;letter-spacing:.04em;color:#fff;background:var(--blue);
+    border-radius:999px;padding:5px 14px;font-weight:600;white-space:nowrap}
+  .plan h4{font-size:18px}
+  .plan .price{font-family:var(--disp);font-size:42px;font-weight:700;margin:14px 0 2px;color:var(--navy)}
+  .plan .price small{font-size:15px;color:var(--ter);font-weight:400;font-family:var(--sans)}
+  .plan .for{font-size:13.5px;color:var(--ter);margin-bottom:20px}
+  .plan ul{list-style:none;margin:0 0 26px;padding:0;display:flex;flex-direction:column;gap:10px}
+  .plan li{font-size:14px;color:var(--body);padding-left:24px;position:relative}
+  .plan li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:700}
+  .plan .btn{margin-top:auto;width:100%}
+  .under{font-size:14px;color:var(--ter);margin-top:28px;text-align:center}
+  .under b{color:var(--body);font-weight:600}
+  .under a{color:var(--blue);font-weight:600}
+
+  .chat-note{margin:18px auto 0;max-width:620px;font-size:13.5px;color:var(--ter);line-height:1.55}
+  .chat-note b{color:var(--body);font-weight:600}
+
+  /* ---------- FAQ ---------- */
+  .faq{max-width:720px;margin:44px auto 0}
+  details{border:1px solid var(--line);border-radius:12px;background:var(--white);margin-bottom:12px;
+    overflow:hidden;box-shadow:var(--sh-s)}
+  details[open]{border-color:#AEC4DD}
+  summary{cursor:pointer;list-style:none;padding:19px 24px;font-weight:600;font-size:15.5px;color:var(--navy);
+    display:flex;justify-content:space-between;align-items:center;gap:14px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";font-family:var(--mono);color:var(--blue);font-size:18px;transition:transform .2s;flex:0 0 auto}
+  details[open] summary::after{transform:rotate(45deg)}
+  details .a{padding:0 24px 20px;color:var(--body);font-size:14.5px;line-height:1.7}
+  details .a b{color:var(--navy)}
+
+  /* ---------- final CTA ---------- */
+  .final{margin:96px 0;text-align:center;border-radius:18px;padding:72px 32px;
+    background:var(--navy);color:#fff;position:relative;overflow:hidden}
+  @media(max-width:767px){.final{margin:56px 0;padding:48px 20px}}
+  .final::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background:radial-gradient(60% 90% at 50% -10%,rgba(31,107,255,.35),transparent 70%)}
+  .final>*{position:relative}
+  .final h2{font-size:clamp(28px,4.4vw,48px);line-height:1.1;margin-bottom:14px;color:#fff}
+  .final p{color:rgba(255,255,255,.82);max-width:520px;margin:0 auto 30px;font-size:17px}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:40px 0 56px;color:var(--ter);font-size:13.5px;background:var(--bg)}
+  .foorow{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .flinks{display:flex;gap:4px;flex-wrap:wrap}
+  .flinks a{color:var(--body);padding:6px 12px;border-radius:8px;transition:.15s;font-weight:500}
+  .flinks a:hover{color:var(--navy);background:var(--blue-t)}
+  .disc{margin-top:20px;font-size:12.5px;color:var(--ter);max-width:640px;line-height:1.6}
+
+  /* ---------- reveal primitives ---------- */
+  .e-mask{display:block;overflow:hidden;padding-bottom:.08em}
+  .e-line{display:block;will-change:transform}
+  html.anim .e-line{transform:translateY(115%)}
+  html.anim .reveal{opacity:0;transform:translateY(22px)}
+  html.anim .shead{--w:0}
+  html.anim.anim-off .reveal{opacity:1!important;transform:none!important}
+  html.anim.anim-off .e-line{transform:none!important}
+  html.anim.anim-off .shead{--w:30px!important}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top">Reportly<span class="dot">.</span></a>
+    <div class="navlinks">
+      <a class="hidem" href="#registre">Le registre</a>
+      <a class="hidem" href="#retention">Rétention</a>
+      <a class="hidem" href="#brief">Brief du matin</a>
+      <a class="hidem" href="#tarifs">Tarifs</a>
+      <a class="hidem" href="#faq">FAQ</a>
+      <a class="btn primary sm" href="#tarifs" data-chat-trigger data-plan="demo">Parler à un humain</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="dotgrid" aria-hidden="true"></div>
+  <div class="wrap">
+    <p class="eyebrow reveal">Le layer de rétention client des agences SEO · Ads · Growth</p>
+    <h1 class="e-split">Vos clients ne voient pas tout le travail.<br>Reportly le rend impossible à rater.</h1>
+    <p class="sub reveal">Reportly transforme vos sources marketing en <b>narrative mensuelle</b> : décisions prises, incidents corrigés, priorité du mois, portail à vos couleurs et PDF. Pas un dashboard de plus. Une preuve de valeur qui aide vos clients à renouveler.</p>
+    <div class="cta-row reveal">
+      <a class="btn primary" href="#tarifs" data-chat-trigger data-plan="demo">Parler de mes clients <span class="arr">→</span></a>
+      <a class="btn second" href="#retention">Voir la différence avec ChatGPT</a>
+    </div>
+    <div class="reassure reveal">
+      <span><i>✓</i> 14 jours d'essai</span>
+      <span><i>✓</i> Sans carte bancaire</span>
+      <span><i>✓</i> Vos données restent en Europe</span>
+    </div>
+
+    <!-- morning brief — living mockup -->
+    <div class="stage reveal" id="brief">
+      <div class="browser">
+        <div class="chrome">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="url">app.getreportly.fr/brief/2026-06-10</div>
+        </div>
+        <div class="bhead">
+          <div class="bt">Brief du matin<small>mardi 10 juin · 07:30 · <span class="cnt" data-to="23">0</span> comptes analysés</small></div>
+          <div class="sums">
+            <span class="sum r">2 urgences</span>
+            <span class="sum a">1 vigilance</span>
+            <span class="sum g">20 RAS</span>
+          </div>
+        </div>
+        <div class="alerts">
+          <div class="alert red">
+            <span class="sev" aria-hidden="true"></span>
+            <div class="ac">
+              <div class="atop"><b>Acme Cosmetics</b><span class="atag budget">Budget</span><span class="astate">Nouveau</span></div>
+              <p>Au rythme actuel, le budget Meta de juin sera <b>épuisé vendredi</b> (J−3). Lisser la dépense ou prévenir le client aujourd'hui.</p>
+            </div>
+            <span class="go">Ouvrir →</span>
+          </div>
+          <div class="alert red">
+            <span class="sev" aria-hidden="true"></span>
+            <div class="ac">
+              <div class="atop"><b>Studio Verde</b><span class="atag track">Tracking</span><span class="astate">Nouveau</span></div>
+              <p>Événements <b>purchase GA4 à zéro depuis 36 h</b> alors que Meta enregistre 23 conversions : tracking probablement cassé.</p>
+            </div>
+            <span class="go">Ouvrir →</span>
+          </div>
+          <div class="alert amber">
+            <span class="sev" aria-hidden="true"></span>
+            <div class="ac">
+              <div class="atop"><b>Maison Lutea</b><span class="atag drift">Dérive</span><span class="astate">Persiste · J3</span></div>
+              <p>CPA Search <b>+28 % vs moyenne 30 jours</b>, troisième jour consécutif. Aucune promo en cours signalée.</p>
+            </div>
+            <span class="go">Ouvrir →</span>
+          </div>
+          <div class="alert green">
+            <span class="sev" aria-hidden="true"></span>
+            <div class="ac"><p>19 autres comptes — RAS. Prochaine analyse demain, 07:30.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="block" id="pont" style="background:var(--white)">
+  <div class="wrap center">
+    <p class="shead center reveal">Le principe</p>
+    <h2 class="stitle e-split">Une alerte le matin.<br>Un argument au renouvellement.</h2>
+    <p class="sintro reveal">Chaque incident est suivi de sa détection à sa résolution — puis archivé dans le rapport mensuel du client.</p>
+    <div class="bridge">
+      <div class="bstep reveal">
+        <div class="bn">07:30 · Chaque matin</div>
+        <h4>Détecter</h4>
+        <p>Tous les comptes analysés avant votre premier café. Budgets, tracking, dérives — triés par gravité, pas par client.</p>
+      </div>
+      <div class="bstep reveal">
+        <div class="bn">Dans la journée</div>
+        <h4>Décider</h4>
+        <p>Chaque alerte devient une décision : assignée, datée, suivie jusqu'à résolution. Le registre s'écrit tout seul — qui a agi, quand, avec quel effet.</p>
+      </div>
+      <div class="bstep reveal">
+        <div class="bn">Fin de mois</div>
+        <h4>Prouver</h4>
+        <p>Le mois est extrait du registre — décisions, incidents corrigés, priorité — et livré au client avec la synthèse rédigée.</p>
+      </div>
+    </div>
+    <p class="bquote reveal">« Voici ce que nous avons vu, et ce que nous avons fait. »<br><em>C'est la différence entre dire que vous veillez — et le prouver.</em></p>
+  </div>
+</section>
+
+<section class="block positioning" id="retention">
+  <div class="wrap center">
+    <p class="shead center reveal">Pourquoi maintenant</p>
+    <h2 class="stitle e-split">Oui, ChatGPT peut écrire un rapport.<br>Une fois.</h2>
+    <p class="sintro reveal">Reportly le fait chaque mois, pour chaque client, avec vos sources, votre ton, votre portail, votre PDF et l'historique des décisions. C'est là que la valeur se crée.</p>
+    <div class="compare">
+      <div class="cmp reveal">
+        <h4>ChatGPT seul</h4>
+        <p>Utile pour improviser une synthèse quand vous avez déjà tout préparé.</p>
+        <ul>
+          <li>Vous recollez les chiffres à la main</li>
+          <li>Vous perdez le contexte du mois précédent</li>
+          <li>Vous devez retrouver les actions dans Slack, e-mail et Notion</li>
+          <li>Le client reçoit un document, pas une preuve continue</li>
+        </ul>
+      </div>
+      <div class="cmp good reveal">
+        <h4>Reportly</h4>
+        <p>Un système mensuel qui accumule la preuve et la rend lisible.</p>
+        <ul>
+          <li>Sources connectées, seuils calibrés sur chaque compte</li>
+          <li>Narrative rédigée dans votre ton, mois après mois</li>
+          <li>Décisions, incidents et priorités gardés dans le registre</li>
+          <li>Portail white-label, PDF et historique consultable au renouvellement</li>
+        </ul>
+      </div>
+    </div>
+    <p class="proofline reveal">Le produit n'est pas un meilleur dashboard. C'est la couche « valeur perçue » entre votre travail et la décision de rester client.</p>
+  </div>
+</section>
+
+<section class="block" id="registre">
+  <div class="wrap">
+    <div class="center reveal">
+      <p class="shead center">Le registre</p>
+      <h2 class="stitle e-split">Vingt-quatre mois d'histoire.<br>Une mémoire qui ne démissionne pas.</h2>
+      <p class="sintro">Tout ce qui a été vu, décidé et traité pour chaque client — daté, suivi, consultable. C'est ce qui reste quand un account manager s'en va. Et ce qui se montre quand un client hésite à renouveler.</p>
+    </div>
+    <div class="ledger reveal">
+      <div class="lhead">
+        <div class="lt">Acme Cosmetics — registre<small>depuis juin 2024 · <span class="cnt" data-to="47">0</span> entrées</small></div>
+        <span class="badge">● À jour ce matin</span>
+      </div>
+      <div class="timeline">
+        <div class="tentry pri reveal">
+          <span class="td">Mai 2026</span>
+          <div class="tc">
+            <div class="tt"><b>Réallocation 15 % Search → PMax</b><span class="atag pri">Priorité</span></div>
+            <p>CPA inférieur de 22 % sur le retargeting. Impact estimé +38 leads/mois.</p>
+          </div>
+          <span class="tres">✓ Traitée</span>
+        </div>
+        <div class="tentry inc reveal">
+          <span class="td">Mai 2026</span>
+          <div class="tc">
+            <div class="tt"><b>Tracking purchase GA4 cassé</b><span class="atag track">Incident</span></div>
+            <p>Détecté à 07:30, corrigé à 11:15 — aucune journée de données perdue.</p>
+          </div>
+          <span class="tres">✓ Résolu en 4 h</span>
+        </div>
+        <div class="tentry reveal">
+          <span class="td">Avr. 2026</span>
+          <div class="tc">
+            <div class="tt"><b>Budget Meta réparti sur 2 audiences gagnantes</b><span class="atag dec">Décision</span></div>
+            <p>+12 % de ROAS constaté le mois suivant — consigné au rapport d'avril.</p>
+          </div>
+          <span class="tres">✓ Suivie</span>
+        </div>
+        <div class="tentry inc reveal">
+          <span class="td">Mars 2026</span>
+          <div class="tc">
+            <div class="tt"><b>Budget épuisé à J−4</b><span class="atag budget">Incident</span></div>
+            <p>Dépense lissée avant impact — le client prévenu avant de s'en apercevoir.</p>
+          </div>
+          <span class="tres">✓ Résolu</span>
+        </div>
+        <div class="tentry pri reveal">
+          <span class="td">Févr. 2026</span>
+          <div class="tc">
+            <div class="tt"><b>Maillage interne du cluster « guides »</b><span class="atag pri">Priorité</span></div>
+            <p>Pages guides : conversion 2,1× la moyenne du site deux mois plus tard.</p>
+          </div>
+          <span class="tres">✓ Traitée</span>
+        </div>
+      </div>
+      <div class="tmore">+ 42 entrées depuis juin 2024 — exportables à tout moment</div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="detections">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="shead">Détections</p>
+      <h2 class="stitle e-split">Trois familles d'alertes,<br>calibrées pour ne pas crier au loup.</h2>
+      <p class="sintro">Un outil d'alertes ne vaut que ce que vaut sa précision. Reportly distingue ce qui est certain de ce qui est probable — et ne vous répète jamais deux fois la même chose.</p>
+    </div>
+    <div class="dets">
+      <div class="det reveal">
+        <div class="dh"><i style="background:var(--red)"></i><h4>Budgets &amp; rythme</h4></div>
+        <p>Épuisement anticipé, dépense anormale du jour, plafonds atteints. Détection sur les chiffres réels de dépense.</p>
+        <div class="rel">Fiabilité : <b>déterministe — pas de faux positifs</b></div>
+      </div>
+      <div class="det reveal">
+        <div class="dh"><i style="background:var(--red)"></i><h4>Tracking &amp; données</h4></div>
+        <p>Conversions à zéro, écarts plateforme/analytics, tags morts. Détecté en heures — pas découvert à la fin du mois.</p>
+        <div class="rel">Fiabilité : <b>croisement de sources</b></div>
+      </div>
+      <div class="det reveal">
+        <div class="dh"><i style="background:var(--amber)"></i><h4>Dérives de performance</h4></div>
+        <p>CPA, ROAS, leads vs votre historique. Chaque dérive a un état — nouvelle, persistante, en amélioration — signalée une fois, suivie jour après jour.</p>
+        <div class="rel">Fiabilité : <b>statistique — affichée comme telle</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block center" id="rapport" style="background:var(--white)">
+  <div class="wrap">
+    <p class="shead center reveal">Le rapport du mois</p>
+    <h2 class="stitle e-split">Le mois se termine.<br>Le rapport est déjà écrit.</h2>
+    <p class="sintro reveal">Le mois extrait du registre : synthèse rédigée en français clair, priorité chiffrée, incidents corrigés — livré sur un portail à vos couleurs, PDF inclus.</p>
+
+    <div class="stage reveal" style="margin-top:48px">
+      <div class="browser wide">
+        <div class="chrome">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="url">app.getreportly.fr/clients/acme/2026-05</div>
+        </div>
+        <div class="app">
+          <div class="main">
+            <div class="apphead">
+              <div class="client">Acme Cosmetics<small>Rapport mensuel — Mai 2026</small></div>
+              <span class="badge">● Envoyé au client</span>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><div class="l">Sessions</div><div class="v"><span class="cnt" data-to="48213">0</span></div><div class="t">▲ +12,4 %</div></div>
+              <div class="kpi"><div class="l">Leads</div><div class="v"><span class="cnt" data-to="1284">0</span></div><div class="t">▲ +18,1 %</div></div>
+              <div class="kpi"><div class="l">CPA</div><div class="v"><span class="cnt" data-to="23" data-dec="4">0</span> €</div><div class="t">▼ −9,2 %</div></div>
+              <div class="kpi"><div class="l">ROAS</div><div class="v"><span class="cnt" data-to="4" data-dec="7">0</span>×</div><div class="t">▲ +0,6</div></div>
+            </div>
+            <div class="chartbox">
+              <div class="cl"><span>Sessions &amp; leads — 12 derniers mois</span>
+                <div class="legend"><span><b style="background:var(--blue)"></b>Sessions</span><span><b style="background:var(--ter)"></b>Leads</span></div>
+              </div>
+              <svg viewBox="0 0 560 130" width="100%" height="130" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="fillb" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#1F6BFF" stop-opacity=".14"/><stop offset="1" stop-color="#1F6BFF" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path id="area" d="M0,100 C40,95 70,82 105,84 C140,86 165,64 200,61 C235,58 260,71 295,63 C330,55 355,39 390,42 C425,45 450,32 490,25 C515,21 540,18 560,15 L560,130 L0,130 Z" fill="url(#fillb)" opacity="0"/>
+                <path class="line" d="M0,100 C40,95 70,82 105,84 C140,86 165,64 200,61 C235,58 260,71 295,63 C330,55 355,39 390,42 C425,45 450,32 490,25 C515,21 540,18 560,15" fill="none" stroke="#1F6BFF" stroke-width="2.5" stroke-linecap="round"/>
+                <path class="line" d="M0,112 C45,110 75,105 110,103 C150,100 180,93 215,91 C250,89 280,82 315,79 C350,76 380,71 415,66 C450,61 500,54 560,46" fill="none" stroke="#7C8FA3" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="incstrip"><span>Incidents détectés &amp; corrigés en mai</span><b>3 / 3 ✓</b></div>
+          </div>
+          <aside class="side">
+            <div class="prio">
+              <div class="pl">Priorité du mois</div>
+              <p>Réallouer <b>15 % du budget Search</b> vers les campagnes PMax : CPA inférieur de <b>22 %</b> sur le retargeting. Impact estimé : <b>+38 leads/mois</b>.</p>
+              <span class="act">Marquer comme traité</span>
+            </div>
+            <div class="synth">
+              <div class="sl">Synthèse — rédigée par Reportly</div>
+              <p><span id="typeline" class="typing">Mai confirme la reprise : le trafic organique progresse de 12 %</span></p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block center" id="exemple">
+  <div class="wrap">
+    <p class="shead center reveal">Données d'exemple, rendu exact</p>
+    <h2 class="stitle e-split">Parcourez ce que vous<br>et vos clients recevrez.</h2>
+
+    <div class="tabs reveal" role="tablist">
+      <button class="tab on" data-p="p-brief">Brief du matin</button>
+      <button class="tab" data-p="p-synth">Synthèse du mois</button>
+      <button class="tab" data-p="p-prio">Priorité</button>
+      <button class="tab" data-p="p-portal">Portail client</button>
+    </div>
+
+    <div class="panel on" id="p-brief">
+      <h3>Brief du matin — pour votre équipe</h3>
+      <div class="ph">tous les jours à 07:30 · dans Slack ou par e-mail · interne, jamais montré au client</div>
+      <div class="stackgap">
+        <div class="alert red">
+          <span class="sev" aria-hidden="true"></span>
+          <div class="ac">
+            <div class="atop"><b>Acme Cosmetics</b><span class="atag budget">Budget</span><span class="astate">Nouveau</span></div>
+            <p>Budget Meta de juin épuisé vendredi au rythme actuel (J−3).</p>
+          </div>
+        </div>
+        <div class="alert amber">
+          <span class="sev" aria-hidden="true"></span>
+          <div class="ac">
+            <div class="atop"><b>Maison Lutea</b><span class="atag drift">Dérive</span><span class="astate">Persiste · J3</span></div>
+            <p>CPA Search +28 % vs moyenne 30 jours, troisième jour consécutif.</p>
+          </div>
+        </div>
+      </div>
+      <p style="margin:16px 0 0;font-size:14px;color:var(--ter)">Chaque alerte indique son état : nouvelle, persistante, en amélioration, résolue. Vous n'êtes jamais re-alerté pour la même chose.</p>
+    </div>
+
+    <div class="panel" id="p-synth">
+      <h3>Synthèse — Mai 2026</h3>
+      <div class="ph">acme-cosmetics · générée le 1 juin · relue en 4 min</div>
+      <div class="rep">
+        <p><b>Mai confirme la reprise.</b> Le trafic organique progresse de 12 % porté par le cluster « routines soin », pendant que le payant gagne en efficacité : CPA en baisse de 9 % à budget constant.</p>
+        <ul>
+          <li>Les leads franchissent la barre des 1 200/mois pour la première fois (+18 %).</li>
+          <li>Les pages « guides » convertissent 2,1× mieux que la moyenne du site.</li>
+          <li>Trois incidents détectés en cours de mois, tous corrigés avant impact visible.</li>
+        </ul>
+        <p>Le mois prochain : capitaliser sur PMax (voir priorité) et publier les 2 guides restants du cluster.</p>
+      </div>
+    </div>
+
+    <div class="panel" id="p-prio">
+      <h3>Priorité du mois — une seule</h3>
+      <div class="ph">générée le 1 juin · liée aux données du mois</div>
+      <div class="rep">
+        <p>Chaque mois, Reportly dégage <b>la</b> décision qui compte, chiffrée et actionnable :</p>
+        <div class="prio" style="max-width:520px">
+          <div class="pl">Priorité — Mai 2026</div>
+          <p>Réallouer <b>15 % du budget Search</b> vers les campagnes PMax : CPA inférieur de <b>22 %</b> sur le segment retargeting. Impact estimé : <b>+38 leads/mois</b> à budget constant.</p>
+          <span class="act">Marquer comme traité</span>
+        </div>
+        <p style="margin-top:16px">Le client clique « traité » — vous voyez qui agit, et l'historique des décisions s'accumule. C'est votre preuve de valeur au renouvellement.</p>
+      </div>
+    </div>
+
+    <div class="panel" id="p-portal">
+      <h3>Portail client — à vos couleurs</h3>
+      <div class="ph">rapports.votre-agence.fr · logo, domaine et couleurs de l'agence</div>
+      <div class="stackgap">
+        <div class="mrow"><div class="mn">Mai 2026<small>synthèse · priorité · incidents corrigés · 12 métriques</small></div><div class="dl"><span>Voir</span><span>PDF ↓</span></div></div>
+        <div class="mrow"><div class="mn">Avril 2026<small>synthèse · priorité · incidents corrigés · 12 métriques</small></div><div class="dl"><span>Voir</span><span>PDF ↓</span></div></div>
+        <div class="mrow"><div class="mn">Mars 2026<small>synthèse · priorité · incidents corrigés · 12 métriques</small></div><div class="dl"><span>Voir</span><span>PDF ↓</span></div></div>
+        <div class="mrow" style="opacity:.55"><div class="mn">Février 2026<small>synthèse · priorité · incidents corrigés · 12 métriques</small></div><div class="dl"><span>Voir</span><span>PDF ↓</span></div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="block" id="fonctionnement">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="shead">Fonctionnement</p>
+      <h2 class="stitle e-split">Connecté aujourd'hui.<br>Premier brief demain matin.</h2>
+      <p class="sintro">Configuration en 12 minutes, chronométrées. Et si vous préférez qu'on s'en charge, notre équipe configure votre compte avec vous — il suffit de demander.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="n">01 · ~12 MIN</div>
+        <h4>Connectez vos sources</h4>
+        <p>OAuth en deux clics. Reportly importe l'historique de chaque compte et calibre ses seuils sur vos données — pas sur des moyennes génériques.</p>
+        <div class="chips"><span>GA4</span><span>Google Ads</span><span>Search Console</span><span>Meta Ads</span><span>Matomo</span><span>LinkedIn Ads</span></div>
+      </div>
+      <div class="step reveal">
+        <div class="n">02 · CHAQUE MATIN, 07:30</div>
+        <h4>Reportly surveille</h4>
+        <p>Tous les comptes analysés, les alertes triées par gravité, le brief livré dans Slack ou par e-mail. Les journées RAS prennent dix secondes.</p>
+      </div>
+      <div class="step reveal">
+        <div class="n">03 · FIN DE MOIS, 1 CLIC</div>
+        <h4>Reportly prouve</h4>
+        <p>Le mois est extrait du registre — synthèse rédigée, priorité chiffrée, incidents corrigés — et livré au client sur un portail à vos couleurs, PDF inclus.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="engagements" style="background:var(--white)">
+  <div class="wrap">
+    <div class="reveal">
+      <p class="shead">Engagements</p>
+      <h2 class="stitle">Ce que Reportly vous garantit.</h2>
+    </div>
+    <div class="vows">
+      <div class="vow reveal"><h4>Opérationnel en 12 minutes</h4><p>Votre premier brief tombe dès le lendemain matin. Sinon, notre équipe configure votre compte avec vous, gratuitement, sous 24 h.</p></div>
+      <div class="vow reveal"><h4>Des alertes dignes de confiance</h4><p>Une urgence est signalée une fois, puis suivie jusqu'à résolution. Ce qui est incertain est affiché comme une vigilance — jamais déguisé en urgence.</p></div>
+      <div class="vow reveal"><h4>Vos données restent vôtres</h4><p>Hébergement en Union européenne, accès en lecture seule, export complet et suppression définitive à tout moment.</p></div>
+      <div class="vow reveal"><h4>Sans engagement</h4><p>Mensuel, résiliable à tout moment depuis votre compte. Vous partez avec tout votre registre — décisions, incidents, rapports.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block center pricing" id="tarifs">
+  <div class="wrap">
+    <p class="shead center reveal">Tarifs</p>
+    <h2 class="stitle e-split">Un prix simple, qui se rentabilise<br>au premier incident évité.</h2>
+    <p class="sintro reveal">14 jours d'essai sur tous les plans, sans carte bancaire. L'analyse initiale de vos comptes est incluse — elle trouve presque toujours quelque chose.</p>
+
+    <div class="plans">
+      <div class="plan reveal">
+        <h4>Starter</h4>
+        <div class="price">79 €<small>/mois</small></div>
+        <div class="for">Pour les indépendants — jusqu'à 3 clients</div>
+        <ul>
+          <li>Brief du matin : budgets &amp; tracking</li>
+          <li>Rapport mensuel rédigé + priorité</li>
+          <li>Portail client (PDF inclus)</li>
+          <li>Toutes les sources incluses</li>
+        </ul>
+        <a class="btn second" href="mailto:hello@getreportly.fr?subject=Diagnostic%20Starter%20—%20Reportly&body=Bonjour%2C%20je%20veux%20voir%20si%20Reportly%20peut%20aider%20%C3%A0%20retenir%20mes%20clients." data-chat-trigger data-plan="Starter">Parler de mes clients</a>
+      </div>
+      <div class="plan hot reveal">
+        <span class="tagtop">Le plus choisi</span>
+        <h4>Growth</h4>
+        <div class="price">149 €<small>/mois</small></div>
+        <div class="for">Pour les agences — jusqu'à 20 clients</div>
+        <ul>
+          <li>Tout Starter</li>
+          <li>Dérives de performance avec suivi d'état</li>
+          <li>Brief dans Slack + assignation d'alertes</li>
+          <li>Registre complet : décisions, incidents, historique illimité</li>
+        </ul>
+        <a class="btn primary" href="mailto:hello@getreportly.fr?subject=Diagnostic%20Growth%20—%20Reportly&body=Bonjour%2C%20je%20veux%20voir%20comment%20Reportly%20peut%20aider%20%C3%A0%20retenir%20mes%20clients%20agence." data-chat-trigger data-plan="Growth">Parler de mes clients <span class="arr">→</span></a>
+      </div>
+      <div class="plan reveal">
+        <h4>Pro</h4>
+        <div class="price">299 €<small>/mois</small></div>
+        <div class="for">Pour les structures — clients illimités</div>
+        <ul>
+          <li>Tout Growth</li>
+          <li>White-label complet + votre domaine</li>
+          <li>Templates par secteur</li>
+          <li>Support prioritaire &lt; 1 h</li>
+        </ul>
+        <a class="btn second" href="mailto:hello@getreportly.fr?subject=Diagnostic%20Pro%20—%20Reportly&body=Bonjour%2C%20je%20veux%20voir%20si%20Reportly%20peut%20am%C3%A9liorer%20la%20valeur%20per%C3%A7ue%20de%20mes%20clients." data-chat-trigger data-plan="Pro">Parler de mes clients</a>
+      </div>
+    </div>
+    <p class="under reveal">Une question avant de vous lancer ? Ouvrez le chat ou écrivez-nous : <a href="mailto:hello@getreportly.fr">hello@getreportly.fr</a> — <b>réponse sous 4 h ouvrées</b>. Et si vous préférez échanger de vive voix, on organise un rendez-vous.</p>
+    <p class="chat-note reveal"><b>Objectif du premier échange :</b> regarder 2 ou 3 clients, repérer où la valeur est mal perçue, puis voir si Reportly peut transformer ce travail invisible en preuve mensuelle.</p>
+  </div>
+</section>
+
+<section class="block" id="faq" style="background:var(--white)">
+  <div class="wrap">
+    <div class="center reveal">
+      <p class="shead center">FAQ</p>
+      <h2 class="stitle">Questions fréquentes.</h2>
+    </div>
+    <div class="faq reveal">
+      <details open>
+        <summary>Comment évitez-vous les fausses alertes ?</summary>
+        <div class="a">Trois garde-fous. <b>Les détections certaines d'abord</b> : budgets et tracking sont déterministes, pas statistiques. <b>Le suivi d'état ensuite</b> : une dérive est signalée une fois puis suivie (nouvelle, persistante, en amélioration) — jamais répétée chaque matin. <b>La calibration enfin</b> : les seuils s'ajustent sur l'historique de chaque compte, pas sur des moyennes génériques.</div>
+      </details>
+      <details>
+        <summary>Et si rien ne casse ?</summary>
+        <div class="a">Tant mieux — le brief RAS se lit en dix secondes. Et la surveillance n'est jamais perdue : tout ce qui a été vérifié et corrigé alimente le rapport mensuel du client. <b>L'analyse initiale de vos comptes, elle, trouve presque toujours quelque chose</b> dans l'historique.</div>
+      </details>
+      <details>
+        <summary>Que devient le registre quand un account manager s'en va ?</summary>
+        <div class="a">Il reste — c'est précisément le but. <b>La mémoire des comptes appartient à l'agence</b>, pas aux personnes qui tournent : son remplaçant lit vingt-quatre mois de décisions et d'incidents en une heure, au lieu de fouiller des fils Slack et des boîtes mail.</div>
+      </details>
+      <details>
+        <summary>Mes clients voient-ils le brief du matin ?</summary>
+        <div class="a">Non. Le brief est <b>interne, pour votre équipe</b>. Le client ne voit que le rapport mensuel — dont la rubrique « incidents détectés &amp; corrigés », formulée à votre avantage : vous avez vu, vous avez agi.</div>
+      </details>
+      <details>
+        <summary>Que se passe-t-il avec mes données et celles de mes clients ?</summary>
+        <div class="a">Accès <b>en lecture seule</b> à vos sources, hébergement en <b>Union européenne</b>, aucune revente, aucun entraînement de modèle sur vos données. Export complet et suppression définitive à tout moment.</div>
+      </details>
+      <details>
+        <summary>Quelles sources sont supportées ?</summary>
+        <div class="a">GA4, Google Ads, Search Console, Meta Ads, Matomo et LinkedIn Ads aujourd'hui. Une source vous manque ? Écrivez-nous : <b>les intégrations sont priorisées avec nos clients</b>, feuille de route publique.</div>
+      </details>
+      <details>
+        <summary>Et si je veux annuler ?</summary>
+        <div class="a">Depuis votre compte, effet à la fin du mois en cours, <b>sans préavis</b>. Vous exportez tout votre registre avant de partir.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="final reveal">
+    <h2 class="e-split">Dans douze mois, vous aurez<br>douze mois de preuves.</h2>
+    <p>Le registre commence à s'écrire demain matin, 07:30. 14 jours d'essai sur vos vrais comptes, premier rapport à la fin du mois.</p>
+    <div class="cta-row" style="justify-content:center">
+      <a class="btn onnavy" href="#tarifs" data-chat-trigger data-plan="demo">Parler de mes clients <span class="arr">→</span></a>
+      <a class="btn outwhite" href="#brief">Revoir le brief exemple</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foorow">
+      <a class="logo" href="#top">Reportly<span class="dot">.</span></a>
+      <div class="flinks">
+        <a href="#registre">Le registre</a>
+        <a href="#brief">Brief du matin</a>
+        <a href="#rapport">Rapport du mois</a>
+        <a href="#tarifs">Tarifs</a>
+        <a href="#faq">FAQ</a>
+        <a href="mailto:hello@getreportly.fr" data-chat-trigger data-plan="contact">Contact</a>
+      </div>
+    </div>
+    <p class="disc">Reportly — getreportly.fr. Le registre de décisions des agences SEO, Ads et Growth : brief du matin, suivi des actions, synthèse rédigée, priorité du mois, portail white-label. Données hébergées en Union européenne. Les chiffres affichés sont des données d'exemple.</p>
+    <p class="disc" style="margin-top:8px">© <span id="yr"></span> Reportly.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  /* ---------- prospect chat ----------
+     Paste your Chatwoot website token below when the inbox is ready.
+     Default baseUrl works for Chatwoot Cloud; replace it with your self-hosted URL if needed. */
+  var CHATWOOT_WEBSITE_TOKEN = '';
+  var CHATWOOT_BASE_URL = 'https://app.chatwoot.com';
+  var CHAT_FALLBACK = 'mailto:hello@getreportly.fr?subject=Diagnostic%20Reportly&body=Bonjour%2C%20je%20veux%20voir%20si%20Reportly%20peut%20aider%20%C3%A0%20retenir%20mes%20clients.';
+
+  function chatFallback(plan){
+    var suffix = plan && plan !== 'demo' && plan !== 'contact' ? '%20Plan%20:%20' + encodeURIComponent(plan) + '.' : '';
+    window.location.href = CHAT_FALLBACK + suffix;
+  }
+
+  function openProspectChat(plan){
+    if (window.$chatwoot) {
+      window.$chatwoot.setCustomAttributes({ intent: 'retention_diagnostic', plan: plan || 'unknown', source: 'getreportly.fr' });
+      window.$chatwoot.toggle('open');
+      return true;
+    }
+    return false;
+  }
+
+  if (CHATWOOT_WEBSITE_TOKEN) {
+    window.chatwootSettings = { hideMessageBubble: false, position: 'right', locale: 'fr' };
+    (function(d,t) {
+      var BASE_URL = CHATWOOT_BASE_URL;
+      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+      g.src = BASE_URL + '/packs/js/sdk.js';
+      g.defer = true;
+      g.async = true;
+      s.parentNode.insertBefore(g,s);
+      g.onload = function() {
+        window.chatwootSDK.run({ websiteToken: CHATWOOT_WEBSITE_TOKEN, baseUrl: BASE_URL });
+      };
+    })(document,'script');
+  }
+
+  document.querySelectorAll('[data-chat-trigger]').forEach(function(trigger){
+    trigger.addEventListener('click', function(event){
+      var plan = trigger.getAttribute('data-plan') || 'unknown';
+      if (openProspectChat(plan)) {
+        event.preventDefault();
+        return;
+      }
+      if (CHATWOOT_WEBSITE_TOKEN) {
+        event.preventDefault();
+        var tries = 0;
+        var timer = setInterval(function(){
+          tries += 1;
+          if (openProspectChat(plan) || tries > 20) {
+            clearInterval(timer);
+            if (tries > 20) chatFallback(plan);
+          }
+        }, 150);
+      } else if (trigger.getAttribute('href') === '#tarifs') {
+        event.preventDefault();
+        chatFallback(plan);
+      }
+    });
+  });
+
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  var root = document.documentElement;
+  var reduce = !root.classList.contains('anim');
+
+  /* ---------- nav state ---------- */
+  var nav = document.getElementById('nav');
+  function onScroll(){ nav.classList.toggle('scrolled', window.scrollY > 24); }
+  onScroll(); addEventListener('scroll', onScroll, {passive:true});
+
+  /* ---------- example tabs ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      tabs.forEach(function(x){ x.classList.remove('on'); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+      t.classList.add('on');
+      document.getElementById(t.dataset.p).classList.add('on');
+    });
+  });
+
+  /* ---------- split flagged headings into masked lines ---------- */
+  function splitLines(el){
+    if (el.querySelector('.e-mask')) return el.querySelectorAll('.e-line');
+    var parts = el.innerHTML.split(/<br\s*\/?>/i);
+    el.innerHTML = parts.map(function(p){
+      return '<span class="e-mask"><span class="e-line">' + p + '</span></span>';
+    }).join('');
+    return el.querySelectorAll('.e-line');
+  }
+  var splits = [];
+  document.querySelectorAll('.e-split').forEach(function(el){
+    splits.push({ el: el, lines: splitLines(el) });
+  });
+
+  /* ---------- typewriter content ---------- */
+  var FULL = "Mai confirme la reprise : le trafic organique progresse de 12 %, porté par le cluster « routines soin », pendant que le payant gagne en efficacité…";
+  var typeEl = document.getElementById('typeline');
+
+  /* ---------- GSAP choreography ---------- */
+  if (!window.gsap || reduce){
+    clearTimeout(window.__failsafe); root.classList.add('anim-off');
+    if (typeEl) typeEl.textContent = FULL;
+    return;
+  }
+  try {
+  gsap.registerPlugin(ScrollTrigger);
+  var EASE = 'expo.out';
+
+  // Hero headline rises, then the rest settles in.
+  var hero = splits.find(function(s){ return s.el.closest('.hero'); });
+  if (hero){ gsap.fromTo(hero.lines, {yPercent:115, y:0}, {yPercent:0, duration:1.15, ease:EASE, stagger:0.12, delay:0.15}); }
+  gsap.to('.hero .reveal', {opacity:1, y:0, duration:0.85, ease:'power3.out', stagger:0.09, delay:0.45});
+
+  // Morning-brief alert rows cascade in after the frame.
+  gsap.fromTo('.hero .alert', {opacity:0, y:14}, {opacity:1, y:0, duration:0.7, ease:'power3.out',
+    stagger:0.12, delay:1.0});
+
+  // Section headlines.
+  splits.forEach(function(s){
+    if (s.el.closest('.hero')) return;
+    gsap.fromTo(s.lines, {yPercent:115, y:0}, {yPercent:0, duration:1, ease:EASE, stagger:0.1,
+      scrollTrigger:{trigger:s.el, start:'top 85%'}});
+  });
+
+  // Eyebrow rules.
+  gsap.utils.toArray('.shead').forEach(function(el){
+    gsap.to(el, {'--w':'30px', duration:0.8, ease:'power3.out',
+      scrollTrigger:{trigger:el, start:'top 88%'}});
+  });
+
+  // Plain reveals.
+  gsap.utils.toArray('.reveal').forEach(function(el){
+    if (el.closest('.hero')) return;
+    if (el.matches('.step,.vow,.plan,.bstep,.det,.tentry')) return;
+    gsap.to(el, {opacity:1, y:0, duration:0.85, ease:'power3.out',
+      scrollTrigger:{trigger:el, start:'top 90%'}});
+  });
+
+  // Card cascades.
+  [['.steps','.step'], ['.vows','.vow'], ['.plans','.plan'], ['.bridge','.bstep'], ['.dets','.det'], ['.timeline','.tentry']].forEach(function(pair){
+    var box = document.querySelector(pair[0]); if (!box) return;
+    gsap.to(box.querySelectorAll(pair[1]), {opacity:1, y:0, duration:0.8, ease:'power3.out',
+      stagger:0.09, scrollTrigger:{trigger:box, start:'top 88%'}});
+  });
+
+  // Counters (fr-FR formatting, optional decimal suffix).
+  gsap.utils.toArray('.cnt').forEach(function(el){
+    var to = +el.dataset.to, dec = el.dataset.dec, obj = {v:0};
+    ScrollTrigger.create({trigger:el, start:'top 95%', once:true, onEnter:function(){
+      gsap.to(obj, {v:to, duration:1.4, ease:'power2.out', delay:0.3, onUpdate:function(){
+        var n = Math.round(obj.v).toLocaleString('fr-FR');
+        el.textContent = dec ? n + ',' + dec : n;
+      }});
+    }});
+  });
+
+  // Chart lines draw themselves; area fades in after.
+  gsap.utils.toArray('.browser .line').forEach(function(p, i){
+    var len = p.getTotalLength();
+    p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+    ScrollTrigger.create({trigger:p, start:'top 95%', once:true, onEnter:function(){
+      gsap.to(p, {strokeDashoffset:0, duration:1.7, delay:0.45 + i*0.25, ease:'power2.inOut'});
+    }});
+  });
+  ScrollTrigger.create({trigger:'#area', start:'top 95%', once:true, onEnter:function(){
+    gsap.to('#area', {opacity:1, duration:1, delay:1.5});
+  }});
+
+  // Typewriter for the synthesis line.
+  if (typeEl){
+    var chars = FULL.split('');
+    typeEl.textContent = '';
+    ScrollTrigger.create({trigger:typeEl, start:'top 95%', once:true, onEnter:function(){
+      var i = 0;
+      var iv = setInterval(function(){
+        typeEl.textContent += chars[i++];
+        if (i >= chars.length){ clearInterval(iv); }
+      }, 26);
+    }});
+  }
+
+  clearTimeout(window.__failsafe);   // setup succeeded
+  } catch (err) {
+    clearTimeout(window.__failsafe);
+    root.classList.add('anim-off');
+    if (typeEl) typeEl.textContent = FULL;
+  }
+})();
+</script>
+</body>
+</html>
