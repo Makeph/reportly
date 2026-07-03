@@ -25,17 +25,18 @@ export default function LoginPage() {
 
   return (
     <div className="card auth">
-      <h1>Reportly</h1>
+      <h1>
+        Reportly<span className="dot">.</span>
+      </h1>
       {sent ? (
         <p>
           Lien de connexion envoyé à <b>{email}</b>. Ouvrez votre boîte mail
-          pour continuer — aucun mot de passe nécessaire.
+          pour continuer.
         </p>
       ) : (
         <form onSubmit={onSubmit}>
           <p className="muted">
-            Connectez-vous par lien magique. Pas d&apos;appel, pas de mot de
-            passe.
+            Recevez votre lien de connexion par e-mail.
           </p>
           <input
             className="input"

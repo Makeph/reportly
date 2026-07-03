@@ -1,14 +1,25 @@
+/* Design system « DocuForge » — bleu/violet/gris, Plus Jakarta Sans + Inter + Fira Code.
+   Les noms de variables historiques (--navy, --body, --ter…) sont conservés :
+   seules les valeurs changent, les styles inline existants restent valides. */
 :root {
-  --bg: #f8fafc;
-  --white: #fff;
-  --navy: #0b2239;
-  --body: #3d5468;
-  --ter: #7c8fa3;
-  --blue: #1f6bff;
-  --blue-d: #1655d6;
-  --line: #e2e8f0;
-  --amber-d: #b45309;
+  --bg: #fafafa;
+  --white: #ffffff;
+  --navy: #18181b;      /* titres */
+  --body: #3f3f46;      /* texte courant */
+  --ter: #71717a;       /* secondaire / métadonnées */
+  --blue: #2563eb;      /* primaire — liens, CTA */
+  --blue-d: #1d4ed8;
+  --blue-t: #eff6ff;
+  --purple: #7c3aed;    /* accents, badges */
+  --line: #e4e4e7;
+  --green: #16a34a;
+  --amber-d: #ca8a04;
   --red: #dc2626;
+  --sh-s: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sh-m: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --font-head: var(--font-jakarta), "Plus Jakarta Sans", sans-serif;
+  --font-text: var(--font-inter), "Inter", -apple-system, "Segoe UI", sans-serif;
+  --font-code: var(--font-fira), "Fira Code", ui-monospace, Consolas, monospace;
 }
 * {
   box-sizing: border-box;
@@ -17,87 +28,182 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--body);
-  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-  line-height: 1.6;
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
 }
 a {
   color: var(--blue);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+::selection {
+  background: var(--blue-t);
+  color: var(--navy);
 }
 h1,
-h2 {
+h2,
+h3 {
+  font-family: var(--font-head);
   color: var(--navy);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
+h1 {
+  font-size: 30px;
+  font-weight: 800;
+}
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+h1 .dot {
+  color: var(--blue);
+}
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
 .card {
   background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 32px;
+  border: 1px solid #f4f4f5;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: var(--sh-s);
+  transition: box-shadow 0.15s ease;
+}
+.card:hover {
+  box-shadow: var(--sh-m);
 }
 .card.auth {
   max-width: 420px;
   margin: 12vh auto;
+  padding: 32px;
+  border-radius: 16px;
 }
-.wrap {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
+
 .input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 14px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 8px;
   margin: 10px 0;
   font: inherit;
+  font-size: 14px;
+  color: var(--navy);
+  background: var(--white);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
+.input:hover {
+  border-color: #d4d4d8;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 1px var(--blue);
+}
+
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: var(--blue);
   color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 20px;
   font: inherit;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .btn:hover {
   background: var(--blue-d);
+  text-decoration: none;
 }
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 .btn.sec {
-  background: #fff;
-  color: var(--navy);
-  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--blue);
+  border-color: var(--blue);
 }
+.btn.sec:hover {
+  background: var(--blue-t);
+}
+
 .row {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
 }
+
 .muted {
   color: var(--ter);
   font-size: 14px;
+  line-height: 1.6;
 }
+
+/* badge façon « method chip » — Fira Code, pour états et étiquettes */
+.badge {
+  display: inline-block;
+  font-family: var(--font-code);
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  padding: 2px 8px;
+  background: #f4f4f5;
+  color: var(--body);
+}
+.badge.ok {
+  background: #f0fdf4;
+  color: var(--green);
+}
+.badge.warn {
+  background: #fff7ed;
+  color: var(--amber-d);
+}
+.badge.err {
+  background: #fef2f2;
+  color: var(--red);
+}
+.badge.info {
+  background: var(--blue-t);
+  color: var(--blue);
+}
+
 .banner {
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px 16px;
   margin: 16px 0 0;
   font-size: 14px;
+  border: 1px solid var(--line);
 }
 .banner.ok {
-  background: #f0fbf4;
-  border: 1px solid #bbe5c8;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
   color: #14532d;
 }
 .banner.err {
-  background: #fef1f1;
-  border: 1px solid #f2c4c4;
+  background: #fef2f2;
+  border-color: #fecaca;
   color: #991b1b;
 }
 
