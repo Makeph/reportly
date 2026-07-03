@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getReportForPortal, formatPeriodFr } from "@/lib/report";
+import { makeShareToken, verifyShareToken } from "@/lib/share-token";
 import PrintButton from "@/app/portal/print-button";
 
 function fmt(n: number, currency: string) {
@@ -9,10 +10,16 @@ function fmt(n: number, currency: string) {
 
 export default async function PortalReportPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ account: string; period: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { account, period } = await params;
+  const sp = await searchParams;
+  if (!sp.t || !verifyShareToken(account, sp.t)) notFound();
+
+  const token = makeShareToken(account);
   const data = await getReportForPortal(account, period);
   if (!data) notFound();
 
@@ -39,7 +46,7 @@ export default async function PortalReportPage({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <strong style={{ color: primary, fontSize: 18 }}>{agencyName}</strong>
-          <Link href={`/portal/${account}`} className="muted">
+          <Link href={`/portal/${account}?t=${token}`} className="muted">
             ← Tous les rapports
           </Link>
         </div>

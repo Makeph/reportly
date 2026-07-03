@@ -5,13 +5,20 @@ import {
   listReportsForAccount,
   formatPeriodFr,
 } from "@/lib/report";
+import { makeShareToken, verifyShareToken } from "@/lib/share-token";
 
 export default async function PortalListPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ account: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { account } = await params;
+  const sp = await searchParams;
+  if (!sp.t || !verifyShareToken(account, sp.t)) notFound();
+
+  const token = makeShareToken(account);
   const header = await getPortalHeader(account);
   if (!header) notFound();
 
@@ -45,7 +52,7 @@ export default async function PortalListPage({
           {reports.map((r) => (
             <Link
               key={r.period}
-              href={`/portal/${account}/${r.period}`}
+              href={`/portal/${account}/${r.period}?t=${token}`}
               className="card"
               style={{
                 display: "flex",

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlement, type AgencyRow } from "@/lib/billing";
+import { makeShareToken } from "@/lib/share-token";
 import { signOut } from "./actions";
 import PlanButtons from "./plan-buttons";
 import GenerateReportButton from "./report-buttons";
@@ -172,7 +173,7 @@ export default async function DashboardPage({
                   <GenerateReportButton accountId={a.id} />
                   <a
                     className="btn sec"
-                    href={`/portal/${a.id}`}
+                    href={`/portal/${a.id}?t=${makeShareToken(a.id)}`}
                     target="_blank"
                     rel="noreferrer"
                   >
