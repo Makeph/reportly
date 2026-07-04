@@ -14,6 +14,12 @@ type BriefEmailInput = {
   alerts: BriefAlert[];
 };
 
+type LifecycleEmailInput = {
+  to: string;
+  subject: string;
+  html: string;
+};
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -73,4 +79,40 @@ export async function sendBriefEmail(input: BriefEmailInput): Promise<boolean> {
     }),
   });
   return res.ok;
+}
+
+// Envoi lifecycle via le même canal Resend que le brief. Non bloquant par design.
+export async function sendLifecycleEmail(input: LifecycleEmailInput): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.log("[lifecycle-email] RESEND_API_KEY absente, envoi ignoré.");
+    return false;
+  }
+  const from = process.env.BRIEF_FROM_EMAIL || "Reportly <brief@getreportly.fr>";
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [input.to],
+        subject: input.subject,
+        html: input.html,
+      }),
+    });
+
+    if (!res.ok) {
+      console.log("[lifecycle-email] Resend a refusé l'envoi.", {
+        status: res.status,
+      });
+    }
+    return res.ok;
+  } catch (error) {
+    console.log("[lifecycle-email] Envoi ignoré après erreur Resend.", error);
+    return false;
+  }
 }

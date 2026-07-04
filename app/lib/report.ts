@@ -1,5 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { claudeJson } from "@/lib/anthropic";
+import { sendLifecycleEmail } from "@/lib/email";
+import { firstReportReady } from "@/lib/lifecycle-emails";
+import { makeShareToken } from "@/lib/share-token";
 
 const MONTHS_FR = [
   "janvier", "février", "mars", "avril", "mai", "juin",
@@ -32,6 +35,20 @@ function monthBounds(period: string) {
 }
 
 type Admin = ReturnType<typeof createAdminClient>;
+
+async function getAgencyOwnerEmail(admin: Admin, agencyId: string): Promise<string | null> {
+  const { data: member } = await admin
+    .from("agency_member")
+    .select("user_id")
+    .eq("agency_id", agencyId)
+    .eq("role", "owner")
+    .limit(1)
+    .maybeSingle<{ user_id: string }>();
+
+  if (!member?.user_id) return null;
+  const { data } = await admin.auth.admin.getUserById(member.user_id);
+  return data.user?.email ?? null;
+}
 
 type MetricDailyRow = {
   spend: number | null;
@@ -146,10 +163,20 @@ export async function generateReport(
 
   const { data: acc } = await admin
     .from("client_account")
-    .select("id, currency, agency_id")
+    .select("id, name, currency, agency_id")
     .eq("id", clientAccountId)
-    .maybeSingle<{ id: string; currency: string | null; agency_id: string }>();
+    .maybeSingle<{
+      id: string;
+      name: string;
+      currency: string | null;
+      agency_id: string;
+    }>();
   if (!acc) return { ok: false, error: "compte introuvable" };
+
+  const { count: reportsBefore } = await admin
+    .from("report")
+    .select("id", { count: "exact", head: true })
+    .eq("client_account_id", acc.id);
 
   const b = monthBounds(period);
   const metrics = await getMonthMetrics(admin, acc.id, b.start, b.end);
@@ -258,7 +285,7 @@ Réponds avec ce JSON exact:
     .join("\n")
     .trim();
 
-  await admin.from("report").upsert(
+  const { error: reportError } = await admin.from("report").upsert(
     {
       client_account_id: acc.id,
       period,
@@ -269,6 +296,7 @@ Réponds avec ce JSON exact:
     },
     { onConflict: "client_account_id,period" }
   );
+  if (reportError) return { ok: false, error: "rapport non enregistré" };
 
   // Alimente le registre avec la priorité du mois (idempotent).
   await admin
@@ -285,6 +313,34 @@ Réponds avec ce JSON exact:
     status: "open",
     dated_at: `${b.end}T12:00:00Z`,
   });
+
+  const { count: reportsAfter } = await admin
+    .from("report")
+    .select("id", { count: "exact", head: true })
+    .eq("client_account_id", acc.id);
+
+  if ((reportsBefore ?? 0) === 0 && reportsAfter === 1) {
+    try {
+      const email = await getAgencyOwnerEmail(admin, acc.agency_id);
+      if (email) {
+        const { data: agency } = await admin
+          .from("agency")
+          .select("name")
+          .eq("id", acc.agency_id)
+          .maybeSingle<{ name: string | null }>();
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
+        const token = makeShareToken(acc.id);
+        const message = firstReportReady({
+          agencyName: agency?.name || "votre agence",
+          accountName: acc.name,
+          portalUrl: `${siteUrl}/portal/${acc.id}/${period}?t=${token}`,
+        });
+        await sendLifecycleEmail({ to: email, ...message });
+      }
+    } catch (error) {
+      console.log("[lifecycle-email] Premier rapport prêt non envoyé.", error);
+    }
+  }
 
   return { ok: true, generated: ai ? "ai" : "fallback" };
 }
