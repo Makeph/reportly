@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decryptToken } from "@/lib/crypto";
-import { getDailySpend } from "@/lib/meta";
+import { getDailySpend, type MetaDailyInsight } from "@/lib/meta";
 import {
   detectSpendAnomaly,
   detectBudgetPacing,
@@ -72,7 +72,7 @@ export async function scanAgency(agencyId: string): Promise<ScanResult> {
       : undefined;
     if (!token || !acc.external_id) continue;
 
-    let daily: { date: string; spend: number }[] = [];
+    let daily: MetaDailyInsight[] = [];
     try {
       daily = await getDailySpend(token, acc.external_id);
     } catch {
@@ -86,6 +86,9 @@ export async function scanAgency(agencyId: string): Promise<ScanResult> {
           client_account_id: acc.id,
           date: d.date,
           spend: d.spend,
+          ...(d.conversions !== undefined ? { conversions: d.conversions } : {}),
+          ...(d.cpa !== undefined ? { cpa: d.cpa } : {}),
+          ...(d.roas !== undefined ? { roas: d.roas } : {}),
         })),
         { onConflict: "client_account_id,date" }
       );

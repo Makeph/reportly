@@ -33,22 +33,70 @@ function monthBounds(period: string) {
 
 type Admin = ReturnType<typeof createAdminClient>;
 
-async function sumSpend(
+type MetricDailyRow = {
+  spend: number | null;
+  conversions: number | null;
+  cpa: number | null;
+  roas: number | null;
+};
+
+type MonthMetrics = {
+  spend: number;
+  conversions: number;
+  cpa: number | null;
+  roas: number | null;
+  hasRows: boolean;
+  hasConversions: boolean;
+  hasRoas: boolean;
+};
+
+function pctDelta(current: number | null, previous: number | null): number | null {
+  if (current === null || previous === null || previous === 0) return null;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+async function getMonthMetrics(
   admin: Admin,
   accountId: string,
   start: string,
   end: string
-): Promise<number> {
+): Promise<MonthMetrics> {
   const { data } = await admin
     .from("metric_daily")
-    .select("spend")
+    .select("spend, conversions, cpa, roas")
     .eq("client_account_id", accountId)
     .gte("date", start)
     .lte("date", end);
-  return (data ?? []).reduce(
-    (s: number, r: { spend: number | null }) => s + (Number(r.spend) || 0),
+
+  const rows = (data ?? []) as MetricDailyRow[];
+  const spend = rows.reduce((s, r) => s + (Number(r.spend) || 0), 0);
+  const conversions = rows.reduce(
+    (s, r) => s + (Number(r.conversions) || 0),
     0
   );
+  const roasRows = rows.filter((r) => r.roas !== null && r.roas !== undefined);
+  const roasSpend = roasRows.reduce((s, r) => s + (Number(r.spend) || 0), 0);
+  const roasRevenue = roasRows.reduce(
+    (s, r) => s + (Number(r.spend) || 0) * (Number(r.roas) || 0),
+    0
+  );
+  const cpa =
+    conversions > 0
+      ? spend / conversions
+      : rows.some((r) => r.cpa !== null && r.cpa !== undefined)
+        ? rows.reduce((s, r) => s + (Number(r.cpa) || 0), 0) /
+          rows.filter((r) => r.cpa !== null && r.cpa !== undefined).length
+        : null;
+
+  return {
+    spend,
+    conversions,
+    cpa: cpa !== null && Number.isFinite(cpa) ? cpa : null,
+    roas: roasSpend > 0 ? roasRevenue / roasSpend : null,
+    hasRows: rows.length > 0,
+    hasConversions: rows.some((r) => r.conversions !== null && r.conversions !== undefined),
+    hasRoas: roasRows.length > 0,
+  };
 }
 
 async function countDetections(
@@ -71,6 +119,15 @@ export type ReportKpis = {
   spend: number;
   spendPrev: number;
   deltaPct: number | null;
+  conversions?: number;
+  conversionsPrev?: number;
+  conversionsDeltaPct?: number | null;
+  cpa?: number | null;
+  cpaPrev?: number | null;
+  cpaDeltaPct?: number | null;
+  roas?: number | null;
+  roasPrev?: number | null;
+  roasDeltaPct?: number | null;
   incidentsDetected: number;
   incidentsResolved: number;
   currency: string;
@@ -95,10 +152,15 @@ export async function generateReport(
   if (!acc) return { ok: false, error: "compte introuvable" };
 
   const b = monthBounds(period);
-  const spend = await sumSpend(admin, acc.id, b.start, b.end);
-  const spendPrev = await sumSpend(admin, acc.id, b.prevStart, b.prevEnd);
-  const deltaPct =
-    spendPrev > 0 ? Math.round(((spend - spendPrev) / spendPrev) * 100) : null;
+  const metrics = await getMonthMetrics(admin, acc.id, b.start, b.end);
+  const prevMetrics = await getMonthMetrics(admin, acc.id, b.prevStart, b.prevEnd);
+  const deltaPct = pctDelta(metrics.spend, prevMetrics.hasRows ? prevMetrics.spend : null);
+  const conversions = metrics.hasConversions ? metrics.conversions : null;
+  const conversionsPrev = prevMetrics.hasConversions ? prevMetrics.conversions : null;
+  const cpa = metrics.hasConversions ? metrics.cpa : null;
+  const cpaPrev = prevMetrics.hasConversions ? prevMetrics.cpa : null;
+  const roas = metrics.hasRoas ? metrics.roas : null;
+  const roasPrev = prevMetrics.hasRoas ? prevMetrics.roas : null;
 
   const incidentsDetected = await countDetections(admin, acc.id, "opened_at", b.start, b.end);
   const incidentsResolved = await countDetections(admin, acc.id, "resolved_at", b.start, b.end);
@@ -115,9 +177,20 @@ export async function generateReport(
   const facts = {
     periode: period,
     devise: currency,
-    depense_mois: Math.round(spend),
-    depense_mois_precedent: Math.round(spendPrev),
+    depense_mois: Math.round(metrics.spend),
+    depense_mois_precedent: Math.round(prevMetrics.spend),
     variation_depense_pct: deltaPct,
+    conversions_mois: conversions !== null ? Math.round(conversions) : null,
+    conversions_mois_precedent:
+      conversionsPrev !== null ? Math.round(conversionsPrev) : null,
+    variation_conversions_pct: pctDelta(conversions, conversionsPrev),
+    cpa_moyen: cpa !== null ? Math.round(cpa * 100) / 100 : null,
+    cpa_moyen_precedent:
+      cpaPrev !== null ? Math.round(cpaPrev * 100) / 100 : null,
+    variation_cpa_pct: pctDelta(cpa, cpaPrev),
+    roas: roas !== null ? Math.round(roas * 100) / 100 : null,
+    roas_precedent: roasPrev !== null ? Math.round(roasPrev * 100) / 100 : null,
+    variation_roas_pct: pctDelta(roas, roasPrev),
     incidents_detectes: incidentsDetected,
     incidents_resolus: incidentsResolved,
     types_incidents: types,
@@ -142,11 +215,16 @@ Réponds avec ce JSON exact:
 
   const fallback: Out = {
     synthesis: [
-      `Sur ${formatPeriodFr(period)}, la dépense s'élève à ${Math.round(spend)} ${currency}${
+      `Sur ${formatPeriodFr(period)}, la dépense s'élève à ${Math.round(metrics.spend)} ${currency}${
         deltaPct !== null
           ? ` (${deltaPct >= 0 ? "+" : ""}${deltaPct} % vs mois précédent)`
           : ""
       }.`,
+      conversions !== null
+        ? `Les campagnes totalisent ${Math.round(conversions)} conversion(s)${
+            cpa !== null ? `, avec un CPA moyen de ${Math.round(cpa)} ${currency}` : ""
+          }${roas !== null ? ` et un ROAS de ${Math.round(roas * 100) / 100}` : ""}.`
+        : "Les données de conversion ne sont pas encore disponibles sur ce rapport.",
       `${incidentsDetected} incident(s) détecté(s), ${incidentsResolved} corrigé(s) au cours du mois.`,
     ],
     highlights: [],
@@ -158,9 +236,18 @@ Réponds avec ce JSON exact:
   const out = ai ?? fallback;
 
   const kpis: ReportKpis = {
-    spend: Math.round(spend),
-    spendPrev: Math.round(spendPrev),
+    spend: Math.round(metrics.spend),
+    spendPrev: Math.round(prevMetrics.spend),
     deltaPct,
+    conversions: conversions !== null ? Math.round(conversions) : undefined,
+    conversionsPrev: conversionsPrev !== null ? Math.round(conversionsPrev) : undefined,
+    conversionsDeltaPct: pctDelta(conversions, conversionsPrev),
+    cpa: cpa !== null ? Math.round(cpa * 100) / 100 : null,
+    cpaPrev: cpaPrev !== null ? Math.round(cpaPrev * 100) / 100 : null,
+    cpaDeltaPct: pctDelta(cpa, cpaPrev),
+    roas: roas !== null ? Math.round(roas * 100) / 100 : null,
+    roasPrev: roasPrev !== null ? Math.round(roasPrev * 100) / 100 : null,
+    roasDeltaPct: pctDelta(roas, roasPrev),
     incidentsDetected,
     incidentsResolved,
     currency,

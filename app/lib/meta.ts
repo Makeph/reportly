@@ -68,7 +68,31 @@ export async function listAdAccounts(token: string): Promise<MetaAdAccount[]> {
   return data.data ?? [];
 }
 
-export type MetaDailyInsight = { date: string; spend: number };
+export type MetaDailyInsight = {
+  date: string;
+  spend: number;
+  conversions?: number;
+  cpa?: number;
+  roas?: number;
+};
+
+type MetaAction = { action_type?: string; value?: string };
+
+function actionValue(actions: MetaAction[] | undefined, names: string[]): number {
+  if (!actions?.length) return 0;
+
+  const exact = actions
+    .filter((a) => a.action_type && names.includes(a.action_type))
+    .reduce((s, a) => s + (Number.parseFloat(a.value ?? "0") || 0), 0);
+  if (exact > 0) return exact;
+
+  return actions
+    .filter((a) => {
+      const type = a.action_type ?? "";
+      return names.some((name) => type.includes(name));
+    })
+    .reduce((s, a) => s + (Number.parseFloat(a.value ?? "0") || 0), 0);
+}
 
 // Dépense quotidienne (time_increment=1) sur les 30 derniers jours.
 export async function getDailySpend(
@@ -76,15 +100,52 @@ export async function getDailySpend(
   actId: string,
   datePreset = "last_30d"
 ): Promise<MetaDailyInsight[]> {
-  const url = new URL(`${GRAPH}/${apiVersion()}/${actId}/insights`);
-  url.searchParams.set("fields", "spend");
-  url.searchParams.set("time_increment", "1");
-  url.searchParams.set("date_preset", datePreset);
-  url.searchParams.set("limit", "500");
-  url.searchParams.set("access_token", token);
-  const data = await graphGet<{ data?: Array<{ date_start: string; spend?: string }> }>(url);
-  return (data.data ?? []).map((row) => ({
-    date: row.date_start,
-    spend: Number.parseFloat(row.spend ?? "0") || 0,
-  }));
+  async function fetchInsights(fields: string) {
+    const url = new URL(`${GRAPH}/${apiVersion()}/${actId}/insights`);
+    url.searchParams.set("fields", fields);
+    url.searchParams.set("time_increment", "1");
+    url.searchParams.set("date_preset", datePreset);
+    url.searchParams.set("limit", "500");
+    url.searchParams.set("access_token", token);
+    return graphGet<{
+      data?: Array<{
+        date_start: string;
+        spend?: string;
+        actions?: MetaAction[];
+        action_values?: MetaAction[];
+        purchase_roas?: MetaAction[];
+      }>;
+    }>(url);
+  }
+
+  let data: {
+    data?: Array<{
+      date_start: string;
+      spend?: string;
+      actions?: MetaAction[];
+      action_values?: MetaAction[];
+      purchase_roas?: MetaAction[];
+    }>;
+  };
+  try {
+    data = await fetchInsights("spend,actions,action_values,purchase_roas");
+  } catch {
+    data = await fetchInsights("spend");
+  }
+
+  return (data.data ?? []).map((row) => {
+    const spend = Number.parseFloat(row.spend ?? "0") || 0;
+    const conversions =
+      actionValue(row.actions, ["purchase"]) + actionValue(row.actions, ["lead"]);
+    const revenue = actionValue(row.action_values, ["purchase"]);
+    const purchaseRoas = actionValue(row.purchase_roas, ["omni_purchase", "purchase"]);
+    const roas = revenue > 0 && spend > 0 ? revenue / spend : purchaseRoas || undefined;
+
+    return {
+      date: row.date_start,
+      spend,
+      ...(conversions > 0 ? { conversions, cpa: spend / conversions } : {}),
+      ...(roas ? { roas } : {}),
+    };
+  });
 }

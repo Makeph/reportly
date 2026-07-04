@@ -8,6 +8,35 @@ function fmt(n: number, currency: string) {
   return `${n.toLocaleString("fr-FR")} ${currency}`;
 }
 
+function fmtNumber(n: number) {
+  return n.toLocaleString("fr-FR");
+}
+
+function fmtDecimal(n: number) {
+  return n.toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function DeltaBadge({
+  delta,
+  positiveIsGood = true,
+}: {
+  delta: number | null | undefined;
+  positiveIsGood?: boolean;
+}) {
+  if (delta === null || delta === undefined) return null;
+  const isPositive = delta >= 0;
+  const tone = delta === 0 ? "info" : isPositive === positiveIsGood ? "ok" : "warn";
+  return (
+    <span className={`badge ${tone}`}>
+      {isPositive ? "+" : ""}
+      {delta} % vs mois précédent
+    </span>
+  );
+}
+
 export default async function PortalReportPage({
   params,
   searchParams,
@@ -29,7 +58,6 @@ export default async function PortalReportPage({
   const primary = brand.color || "#1F6BFF";
   const agencyName = brand.name || agency?.name || "Agence";
   const currency = kpis?.currency ?? "EUR";
-  const delta = kpis?.deltaPct ?? null;
 
   return (
     <div className="wrap" style={{ maxWidth: 760 }}>
@@ -60,7 +88,7 @@ export default async function PortalReportPage({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
           gap: 12,
           margin: "20px 0",
         }}
@@ -72,13 +100,37 @@ export default async function PortalReportPage({
           <div style={{ fontSize: 22, fontWeight: 700, color: "var(--navy)" }}>
             {fmt(kpis?.spend ?? 0, currency)}
           </div>
-          {delta !== null && (
-            <div style={{ fontSize: 13, color: delta >= 0 ? "#16A34A" : "#DC2626" }}>
-              {delta >= 0 ? "▲ +" : "▼ "}
-              {delta} % vs mois précédent
-            </div>
-          )}
+          <DeltaBadge delta={kpis?.deltaPct} />
         </div>
+        <div className="card" style={{ padding: 18 }}>
+          <div className="muted" style={{ fontSize: 12, textTransform: "uppercase" }}>
+            Conversions
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "var(--navy)" }}>
+            {kpis?.conversions !== undefined ? fmtNumber(kpis.conversions) : "—"}
+          </div>
+          <DeltaBadge delta={kpis?.conversionsDeltaPct} />
+        </div>
+        <div className="card" style={{ padding: 18 }}>
+          <div className="muted" style={{ fontSize: 12, textTransform: "uppercase" }}>
+            CPA moyen
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "var(--navy)" }}>
+            {kpis?.cpa !== null && kpis?.cpa !== undefined ? fmt(kpis.cpa, currency) : "—"}
+          </div>
+          <DeltaBadge delta={kpis?.cpaDeltaPct} positiveIsGood={false} />
+        </div>
+        {kpis?.roas !== null && kpis?.roas !== undefined && (
+          <div className="card" style={{ padding: 18 }}>
+            <div className="muted" style={{ fontSize: 12, textTransform: "uppercase" }}>
+              ROAS
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "var(--navy)" }}>
+              {fmtDecimal(kpis.roas)}
+            </div>
+            <DeltaBadge delta={kpis.roasDeltaPct} />
+          </div>
+        )}
         <div className="card" style={{ padding: 18 }}>
           <div className="muted" style={{ fontSize: 12, textTransform: "uppercase" }}>
             Incidents détectés

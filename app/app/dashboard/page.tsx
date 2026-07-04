@@ -15,6 +15,24 @@ type Detection = {
   body: string | null;
 };
 
+type ClientAccount = {
+  id: string;
+  name: string;
+  currency: string | null;
+};
+
+type AccountMetricRow = {
+  client_account_id: string;
+  spend: number | null;
+  conversions: number | null;
+};
+
+type AccountSummary = {
+  spend: number;
+  conversions: number;
+  cpa: number | null;
+};
+
 const SEV_RANK: Record<string, number> = { red: 0, amber: 1, green: 2 };
 const SEV_COLOR: Record<string, string> = {
   red: "#DC2626",
@@ -54,9 +72,29 @@ export default async function DashboardPage({
 
   const { data: accounts } = await supabase
     .from("client_account")
-    .select("id, name")
+    .select("id, name, currency")
     .order("name");
-  const clientAccounts = (accounts ?? []) as { id: string; name: string }[];
+  const clientAccounts = (accounts ?? []) as ClientAccount[];
+
+  const since = new Date();
+  since.setUTCDate(since.getUTCDate() - 30);
+  const { data: metricRows } = await supabase
+    .from("metric_daily")
+    .select("client_account_id, spend, conversions")
+    .gte("date", since.toISOString().slice(0, 10));
+  const summaryByAccount = new Map<string, AccountSummary>();
+  for (const row of (metricRows ?? []) as AccountMetricRow[]) {
+    const current = summaryByAccount.get(row.client_account_id) ?? {
+      conversions: 0,
+      spend: 0,
+    };
+    current.conversions += Number(row.conversions) || 0;
+    current.spend += Number(row.spend) || 0;
+    summaryByAccount.set(row.client_account_id, {
+      ...current,
+      cpa: current.conversions > 0 ? current.spend / current.conversions : null,
+    });
+  }
 
   const { data: detRows } = await supabase
     .from("detection")
@@ -168,7 +206,23 @@ export default async function DashboardPage({
                   flexWrap: "wrap",
                 }}
               >
-                <b style={{ color: "var(--navy)" }}>{a.name}</b>
+                <div>
+                  <b style={{ color: "var(--navy)" }}>{a.name}</b>
+                  {summaryByAccount.has(a.id) && (
+                    <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
+                      30 jours :{" "}
+                      {Math.round(summaryByAccount.get(a.id)?.conversions ?? 0).toLocaleString(
+                        "fr-FR"
+                      )}{" "}
+                      conv.
+                      {summaryByAccount.get(a.id)?.cpa !== null
+                        ? ` · CPA ${Math.round(summaryByAccount.get(a.id)!.cpa!)} ${
+                            a.currency ?? "EUR"
+                          }`
+                        : ""}
+                    </p>
+                  )}
+                </div>
                 <span className="row">
                   <GenerateReportButton accountId={a.id} />
                   <a
