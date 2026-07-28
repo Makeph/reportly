@@ -38,7 +38,15 @@ export default async function PortalListPage({
           paddingBottom: 16,
         }}
       >
-        <strong style={{ color: primary, fontSize: 18 }}>{agencyName}</strong>
+        {brand.logo ? (
+          <img
+            src={brand.logo}
+            alt={agencyName}
+            style={{ maxHeight: 32, maxWidth: 180, objectFit: "contain" }}
+          />
+        ) : (
+          <strong style={{ color: primary, fontSize: 18 }}>{agencyName}</strong>
+        )}
         <span className="muted">· Espace client</span>
       </header>
 
@@ -74,12 +82,14 @@ export default async function PortalListPage({
         </div>
       )}
 
-      <footer className="muted" style={{ marginTop: 40, fontSize: 12 }}>
-        Propulsé par{" "}
-        <a href="https://getreportly.fr" style={{ color: primary }}>
-          Reportly
-        </a>
-      </footer>
+      {header.agency?.plan !== "pro" && (
+        <footer className="muted" style={{ marginTop: 40, fontSize: 12 }}>
+          Propulsé par{" "}
+          <a href="https://getreportly.fr" style={{ color: primary }}>
+            Reportly
+          </a>
+        </footer>
+      )}
     </div>
   );
 }

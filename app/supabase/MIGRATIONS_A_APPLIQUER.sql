@@ -34,9 +34,52 @@ create policy lifecycle_event_ro on lifecycle_event
   for select using (agency_id in (select my_agency_ids()));
 
 
+-- -------------------------------------------------------------
+-- 0006 — Le propriétaire peut modifier les réglages de son agence
+--
+-- Sans ceci, agency.branding est en lecture seule : aucune agence
+-- ne peut choisir sa couleur ni son logo, et tous les portails
+-- clients affichent le bleu par défaut de Reportly.
+--
+-- Une policy RLS filtre les LIGNES, jamais les COLONNES. Le grant
+-- restreint donc explicitement l'écriture à (name, branding) :
+-- sans lui, un propriétaire pourrait passer son agence en plan Pro
+-- et repousser trial_ends_at sans jamais payer.
+-- Le webhook Stripe écrit en service-role, il n'est pas concerné.
+-- -------------------------------------------------------------
+
+revoke update on agency from authenticated, anon;
+grant update (name, branding) on agency to authenticated;
+
+drop policy if exists agency_update on agency;
+create policy agency_update on agency
+  for update using (
+    id in (select my_agency_ids())
+    and id in (
+      select agency_id
+      from agency_member
+      where user_id = auth.uid() and role = 'owner'
+    )
+  )
+  with check (
+    id in (select my_agency_ids())
+    and id in (
+      select agency_id
+      from agency_member
+      where user_id = auth.uid() and role = 'owner'
+    )
+  );
+
+
 -- =============================================================
--- Vérification rapide après exécution :
+-- Vérifications rapides après exécution :
 --
 --   select count(*) from lifecycle_event;   -- doit renvoyer 0
+--
+--   select grantee, privilege_type, column_name
+--   from information_schema.column_privileges
+--   where table_name = 'agency' and grantee = 'authenticated'
+--     and privilege_type = 'UPDATE';
+--   -- doit renvoyer exactement 2 lignes : name et branding
 --
 -- =============================================================

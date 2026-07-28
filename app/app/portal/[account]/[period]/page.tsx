@@ -73,7 +73,15 @@ export default async function PortalReportPage({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <strong style={{ color: primary, fontSize: 18 }}>{agencyName}</strong>
+          {brand.logo ? (
+            <img
+              src={brand.logo}
+              alt={agencyName}
+              style={{ maxHeight: 32, maxWidth: 180, objectFit: "contain" }}
+            />
+          ) : (
+            <strong style={{ color: primary, fontSize: 18 }}>{agencyName}</strong>
+          )}
           <Link href={`/portal/${account}?t=${token}`} className="muted">
             ← Tous les rapports
           </Link>
@@ -193,12 +201,14 @@ export default async function PortalReportPage({
         </div>
       )}
 
-      <footer className="muted" style={{ marginTop: 40, fontSize: 12 }}>
-        Propulsé par{" "}
-        <a href="https://getreportly.fr" style={{ color: primary }}>
-          Reportly
-        </a>
-      </footer>
+      {agency?.plan !== "pro" && (
+        <footer className="muted" style={{ marginTop: 40, fontSize: 12 }}>
+          Propulsé par{" "}
+          <a href="https://getreportly.fr" style={{ color: primary }}>
+            Reportly
+          </a>
+        </footer>
+      )}
     </div>
   );
 }

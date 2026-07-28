@@ -131,9 +131,14 @@ export default async function DashboardPage({
         }}
       >
         <h1>Tableau de bord</h1>
-        <form action={signOut}>
-          <button className="btn sec">Se déconnecter</button>
-        </form>
+        <div className="row">
+          <a className="btn sec" href="/dashboard/settings">
+            Réglages
+          </a>
+          <form action={signOut}>
+            <button className="btn sec">Se déconnecter</button>
+          </form>
+        </div>
       </header>
 
       <p className="muted">

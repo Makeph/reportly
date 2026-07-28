@@ -133,6 +133,15 @@ export default function CsvImportPage() {
           <b>revenu</b> est facultative. Les séparateurs « ; » et « , » ainsi
           que les dates YYYY-MM-DD et DD/MM/YYYY sont acceptés.
         </p>
+        <p>
+          <a className="btn sec" href="/api/import/csv/exemple">
+            Télécharger un fichier d&apos;exemple
+          </a>
+        </p>
+        <p className="muted">
+          Trente-quatre jours de données réalistes, prêtes à importer — de quoi
+          voir immédiatement à quoi ressemble une alerte.
+        </p>
         <p>Exemple copiable avec trois lignes de données :</p>
         <pre
           style={{

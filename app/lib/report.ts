@@ -355,9 +355,13 @@ export async function getPortalHeader(clientAccountId: string) {
   if (!account) return null;
   const { data: agency } = await admin
     .from("agency")
-    .select("name, branding")
+    .select("name, branding, plan")
     .eq("id", account.agency_id)
-    .maybeSingle<{ name: string | null; branding: Record<string, unknown> | null }>();
+    .maybeSingle<{
+      name: string | null;
+      branding: Record<string, unknown> | null;
+      plan: string | null;
+    }>();
   return { account, agency: agency ?? null };
 }
 
