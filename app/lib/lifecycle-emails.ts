@@ -5,6 +5,7 @@ type EmailTemplate = {
 
 type OnboardingConnectSourceInput = {
   agencyName: string;
+  dashboardUrl: string;
 };
 
 type TrialEndsSoonInput = {
@@ -84,6 +85,7 @@ function renderEmail({
 
 export function onboardingConnectSource({
   agencyName,
+  dashboardUrl,
 }: OnboardingConnectSourceInput): EmailTemplate {
   const name = agencyName || "votre agence";
   return {
@@ -96,7 +98,7 @@ export function onboardingConnectSource({
         "Le premier brief arrive demain à 07:30. Il vous donne les urgences, les points de vigilance et les comptes sans anomalie.",
       ],
       cta: {
-        href: "https://app.getreportly.fr/dashboard",
+        href: dashboardUrl,
         label: "Connecter une source",
       },
     }),

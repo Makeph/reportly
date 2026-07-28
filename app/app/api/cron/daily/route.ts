@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getEntitlement, type AgencyRow } from "@/lib/billing";
+import { getEntitlement, type Entitlement } from "@/lib/billing";
 import { runDailyBrief } from "@/lib/brief";
 import { sendLifecycleEmail } from "@/lib/email";
 import {
@@ -16,6 +16,11 @@ type DailyAgencyRow = {
   subscription_status: string | null;
   created_at: string | null;
 };
+
+type LifecycleEventKind =
+  | "onboarding_connect_source"
+  | "trial_ends_soon"
+  | "first_report_ready";
 
 function dateOnlyUtc(d: Date): number {
   return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
@@ -44,25 +49,62 @@ async function getAgencyOwnerEmail(
   return data.user?.email ?? null;
 }
 
+async function sendLifecycleEmailOnce(
+  admin: ReturnType<typeof createAdminClient>,
+  agencyId: string,
+  kind: LifecycleEventKind,
+  message: { subject: string; html: string },
+  email: string
+) {
+  const { data: existingEvent, error: selectError } = await admin
+    .from("lifecycle_event")
+    .select("id")
+    .eq("agency_id", agencyId)
+    .eq("kind", kind)
+    .maybeSingle<{ id: string }>();
+
+  if (selectError) throw selectError;
+  if (existingEvent) return;
+
+  const sent = await sendLifecycleEmail({ to: email, ...message });
+  if (!sent) {
+    throw new Error(`Échec de l'envoi lifecycle "${kind}".`);
+  }
+
+  const { error: insertError } = await admin
+    .from("lifecycle_event")
+    .insert({ agency_id: agencyId, kind });
+
+  if (insertError) throw insertError;
+}
+
 async function sendDailyLifecycleEmails(
   admin: ReturnType<typeof createAdminClient>,
-  agency: DailyAgencyRow
+  agency: DailyAgencyRow,
+  entitlement: Entitlement
 ) {
-  const entitlement = getEntitlement(agency);
   if (!entitlement.trialActive || !agency.trial_ends_at) return;
 
   const email = await getAgencyOwnerEmail(admin, agency.id);
   if (!email) return;
 
   const agencyName = agency.name || "votre agence";
-  if (daysUntil(agency.trial_ends_at) === 3) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
+  const dashboardUrl = `${siteUrl}/dashboard`;
+  const trialDaysLeft = daysUntil(agency.trial_ends_at);
+  if (trialDaysLeft <= 3 && trialDaysLeft > 0) {
     const message = trialEndsSoon({
       agencyName,
-      daysLeft: 3,
-      upgradeUrl: `${siteUrl}/dashboard`,
+      daysLeft: trialDaysLeft,
+      upgradeUrl: dashboardUrl,
     });
-    await sendLifecycleEmail({ to: email, ...message });
+    await sendLifecycleEmailOnce(
+      admin,
+      agency.id,
+      "trial_ends_soon",
+      message,
+      email
+    );
   }
 
   const { count } = await admin
@@ -73,10 +115,14 @@ async function sendDailyLifecycleEmails(
   const ageDays = (Date.now() - createdAt) / 86_400_000;
 
   if ((count ?? 0) === 0 && ageDays >= 1) {
-    // TODO: ajouter une table d'événements lifecycle pour dédupliquer cet email.
-    // À défaut de table existante adaptée, cet onboarding peut partir une fois par jour.
-    const message = onboardingConnectSource({ agencyName });
-    await sendLifecycleEmail({ to: email, ...message });
+    const message = onboardingConnectSource({ agencyName, dashboardUrl });
+    await sendLifecycleEmailOnce(
+      admin,
+      agency.id,
+      "onboarding_connect_source",
+      message,
+      email
+    );
   }
 }
 
@@ -102,18 +148,32 @@ export async function GET(request: Request) {
 
   let processed = 0;
   let skipped = 0;
-  for (const a of agencies ?? []) {
-    if (!getEntitlement(a as AgencyRow).active) {
+  for (const agency of (agencies ?? []) as DailyAgencyRow[]) {
+    const entitlement = getEntitlement(agency);
+    if (!entitlement.active) {
       skipped += 1;
       continue;
     }
+
     try {
-      await runDailyBrief(a.id);
-      await sendDailyLifecycleEmails(admin, a as DailyAgencyRow);
+      await runDailyBrief(agency.id);
       processed += 1;
-    } catch {
+    } catch (error) {
       // une agence en erreur ne doit pas bloquer les autres
       skipped += 1;
+      console.error("[cron-daily] Échec du brief quotidien.", {
+        agencyId: agency.id,
+        error,
+      });
+    }
+
+    try {
+      await sendDailyLifecycleEmails(admin, agency, entitlement);
+    } catch (error) {
+      console.error("[cron-daily] Échec des emails lifecycle.", {
+        agencyId: agency.id,
+        error,
+      });
     }
   }
 

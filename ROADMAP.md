@@ -1,16 +1,28 @@
 # Reportly — Roadmap : du code au live
 
-> État au 2026-06-21 : **S1→S4 codées, build vert (14 routes)**. La boucle produit complète
-> est en place : signup → connecter Meta → audit → brief quotidien → rapport mensuel → portail.
+> État au 2026-07-29 : **S1→S5 codées, build vert**. La boucle produit complète
+> est en place : signup → source de données → audit → brief quotidien → rapport mensuel → portail.
 > Code dans `C:\au2\reportly\app\`. Détails techniques : `app/README.md` + `MVP_ARCHITECTURE.md`.
 >
-> ✅ **Fait** : compte/projet Supabase (connecté via GitHub).
+> ✅ **Fait** : Supabase branché (région EU, tables créées, magic-link opérationnel) · portail
+> sécurisé par lien signé HMAC · seed de démonstration (`npm run seed:demo`) · KPIs enrichis
+> (conversions, CPA, ROAS) · emails lifecycle · **import CSV** · tests du noyau.
 
 ---
 
 ## Le chemin critique en une phrase
-Une seule chose a un **délai externe** : l'**App Review Meta**. Lance-la aujourd'hui ; tout le reste,
-tu peux le câbler en ~1 journée. En attendant la review, tu testes en **mode dev** (toi = testeur de l'app).
+**L'App Review Meta n'est plus bloquante pour la bêta** : l'import CSV permet à un prospect de
+vivre toute la boucle produit sans aucune API tierce. La review reste nécessaire pour l'automatisation
+quotidienne à grande échelle — lance-la, mais ne l'attends plus pour prendre des clients.
+En attendant, tu peux aussi tester Meta en **mode dev** (toi = testeur de ton app).
+
+---
+
+## Phase 0 bis — La bêta sans Meta (disponible dès maintenant)
+- [x] **Import CSV** (`/dashboard/import`) : le prospect dépose un export de n'importe quelle
+      plateforme et obtient détections, brief, rapport et portail. Source permanente, pas un
+      dépannage — elle couvrira toujours les régies jamais intégrées (Matomo, TikTok Ads, local).
+- [ ] Recruter les premières agences bêta sur ce chemin, sans attendre la review.
 
 ---
 
