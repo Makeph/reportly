@@ -68,13 +68,16 @@ export async function listAdAccounts(token: string): Promise<MetaAdAccount[]> {
   return data.data ?? [];
 }
 
-export type MetaDailyInsight = {
+export type DailyInsight = {
   date: string;
   spend: number;
   conversions?: number;
   cpa?: number;
   roas?: number;
 };
+
+// Alias conservé pour les appels existants spécifiques à Meta.
+export type MetaDailyInsight = DailyInsight;
 
 type MetaAction = { action_type?: string; value?: string };
 
@@ -99,7 +102,7 @@ export async function getDailySpend(
   token: string,
   actId: string,
   datePreset = "last_30d"
-): Promise<MetaDailyInsight[]> {
+): Promise<DailyInsight[]> {
   async function fetchInsights(fields: string) {
     const url = new URL(`${GRAPH}/${apiVersion()}/${actId}/insights`);
     url.searchParams.set("fields", fields);

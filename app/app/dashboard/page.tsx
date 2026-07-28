@@ -21,6 +21,13 @@ type ClientAccount = {
   currency: string | null;
 };
 
+type SourceConnection = {
+  id: string;
+  provider: string;
+  status: string | null;
+  connected_at: string | null;
+};
+
 type AccountMetricRow = {
   client_account_id: string;
   spend: number | null;
@@ -39,6 +46,12 @@ const SEV_COLOR: Record<string, string> = {
   amber: "#F59E0B",
   green: "#16A34A",
 };
+
+function providerLabel(provider: string): string {
+  if (provider === "meta") return "Meta Ads";
+  if (provider === "csv") return "Fichiers CSV";
+  return provider;
+}
 
 export default async function DashboardPage({
   searchParams,
@@ -59,12 +72,15 @@ export default async function DashboardPage({
     .maybeSingle<AgencyRow>();
   const ent = getEntitlement(agency);
 
-  const { data: metaConn } = await supabase
-    .from("connection")
-    .select("id, connected_at")
-    .eq("provider", "meta")
-    .limit(1)
-    .maybeSingle<{ id: string; connected_at: string }>();
+  let connections: SourceConnection[] = [];
+  if (agency) {
+    const { data } = await supabase
+      .from("connection")
+      .select("id, provider, status, connected_at")
+      .eq("agency_id", agency.id)
+      .order("connected_at");
+    connections = (data ?? []) as SourceConnection[];
+  }
 
   const { count: accountCount } = await supabase
     .from("client_account")
@@ -155,26 +171,42 @@ export default async function DashboardPage({
 
       <div className="card" style={{ marginBottom: 24 }}>
         <h2>Sources</h2>
-        {metaConn ? (
-          <>
-            <p>
-              Meta Ads connecté · <b>{accountCount ?? 0}</b> compte(s) importé(s).
-            </p>
-            <a className="btn sec" href="/api/connect/meta/start">
-              Reconnecter / réimporter
-            </a>
-          </>
+        {connections.length ? (
+          <div className="row" style={{ marginBottom: 12 }}>
+            {connections.map((connection) => {
+              const active = connection.status === "active";
+              return (
+                <span
+                  className={`badge ${active ? "ok" : "warn"}`}
+                  key={connection.id}
+                >
+                  {providerLabel(connection.provider)} ·{" "}
+                  {active ? "active" : "à vérifier"}
+                </span>
+              );
+            })}
+            <span className="muted">
+              <b>{accountCount ?? 0}</b> compte(s) client(s)
+            </span>
+          </div>
         ) : (
-          <>
-            <p className="muted">
-              Connectez votre première source pour lancer l&apos;audit initial —
-              il trouve presque toujours quelque chose.
-            </p>
-            <a className="btn" href="/api/connect/meta/start">
-              Connecter Meta Ads
-            </a>
-          </>
+          <p className="muted">
+            Ajoutez votre première source pour lancer les détections et les
+            rapports.
+          </p>
         )}
+        <p className="muted">
+          Connectez Meta Ads ou importez les exports de Matomo, TikTok Ads et
+          vos régies locales.
+        </p>
+        <div className="row">
+          <a className="btn" href="/api/connect/meta/start">
+            Connecter Meta Ads
+          </a>
+          <a className="btn" href="/dashboard/import">
+            Importer un fichier
+          </a>
+        </div>
       </div>
 
       {clientAccounts.length > 0 && (
@@ -247,7 +279,7 @@ export default async function DashboardPage({
         {detections.length === 0 ? (
           <p className="muted">
             Aucune alerte ouverte.{" "}
-            {metaConn
+            {connections.length
               ? "RAS sur vos comptes."
               : "Connectez une source pour démarrer."}
           </p>
