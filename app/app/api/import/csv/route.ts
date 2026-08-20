@@ -1,32 +1,13 @@
 import { NextResponse } from "next/server";
 import { maxClientAccounts, requireActiveAgency } from "@/lib/billing";
-import { parseCsvImport } from "@/lib/csv-import";
+import {
+  parseCsvImport,
+  slugifyAccountName,
+  validateImportForm,
+} from "@/lib/csv-import";
 import { scanAgency } from "@/lib/scan";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
-
-function slugify(value: string): string {
-  return (
-    value
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "") || "compte"
-  );
-}
-
-function parseBudget(value: FormDataEntryValue | null): number | null {
-  if (typeof value !== "string" || !value.trim()) return null;
-  const normalized = value
-    .replace(/[€\s\u00a0\u202f]/g, "")
-    .replace(",", ".");
-  const budget = Number(normalized);
-  return Number.isFinite(budget) && budget > 0 ? budget : Number.NaN;
-}
 
 // Importe une source CSV complète : compte, métriques, puis audit immédiat.
 export async function POST(request: Request) {
@@ -49,36 +30,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const file = formData.get("file");
-  const accountNameValue = formData.get("accountName");
-  const accountName =
-    typeof accountNameValue === "string" ? accountNameValue.trim() : "";
-  const monthlyBudget = parseBudget(formData.get("monthlyBudget"));
-
-  if (!(file instanceof File)) {
+  const validation = validateImportForm(formData);
+  if (!validation.ok) {
     return NextResponse.json(
-      { error: "Un fichier CSV est requis." },
-      { status: 400 }
+      { error: validation.error },
+      { status: validation.status }
     );
   }
-  if (!accountName) {
-    return NextResponse.json(
-      { error: "Le nom du compte client est requis." },
-      { status: 400 }
-    );
-  }
-  if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json(
-      { error: "Le fichier CSV ne doit pas dépasser 2 Mo." },
-      { status: 413 }
-    );
-  }
-  if (Number.isNaN(monthlyBudget)) {
-    return NextResponse.json(
-      { error: "Le budget mensuel doit être un nombre positif." },
-      { status: 400 }
-    );
-  }
+  const { file, accountName, monthlyBudget } = validation.fields;
 
   const parsed = parseCsvImport(await file.text());
   if (!parsed.rows.length) {
@@ -95,7 +54,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
 
   try {
-    const externalId = `csv-${slugify(accountName)}`;
+    const externalId = `csv-${slugifyAccountName(accountName)}`;
     const { data: existingAccount, error: accountReadError } = await admin
       .from("client_account")
       .select("id")

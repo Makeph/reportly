@@ -252,3 +252,76 @@ export function parseCsvImport(input: string): CsvImportResult {
 }
 
 export const parseCsv = parseCsvImport;
+
+// --- Validation du formulaire d'import ------------------------------------
+// Extraite du handler pour être testable sans client Supabase ni requête HTTP.
+// Le handler reste responsable de l'authentification, qui doit précéder toute
+// lecture du fichier : on ne parse pas 2 Mo d'entrée non authentifiée.
+
+export const MAX_IMPORT_FILE_SIZE = 2 * 1024 * 1024;
+
+export type ImportFormError = { error: string; status: number };
+
+export type ImportFormFields = {
+  file: File;
+  accountName: string;
+  monthlyBudget: number | null;
+};
+
+export function slugifyAccountName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+export function parseMonthlyBudget(
+  value: FormDataEntryValue | null
+): number | null {
+  if (value === null || value === "") return null;
+  if (typeof value !== "string") return Number.NaN;
+  const parsed = Number(value.replace(",", "."));
+  if (!Number.isFinite(parsed) || parsed <= 0) return Number.NaN;
+  return parsed;
+}
+
+// Renvoie soit les champs validés, soit l'erreur à retourner telle quelle.
+export function validateImportForm(
+  formData: FormData
+): { ok: true; fields: ImportFormFields } | { ok: false } & ImportFormError {
+  const file = formData.get("file");
+  const accountNameValue = formData.get("accountName");
+  const accountName =
+    typeof accountNameValue === "string" ? accountNameValue.trim() : "";
+  const monthlyBudget = parseMonthlyBudget(formData.get("monthlyBudget"));
+
+  if (!(file instanceof File)) {
+    return { ok: false, error: "Un fichier CSV est requis.", status: 400 };
+  }
+  if (!accountName) {
+    return {
+      ok: false,
+      error: "Le nom du compte client est requis.",
+      status: 400,
+    };
+  }
+  if (file.size > MAX_IMPORT_FILE_SIZE) {
+    return {
+      ok: false,
+      error: "Le fichier CSV ne doit pas dépasser 2 Mo.",
+      status: 413,
+    };
+  }
+  if (Number.isNaN(monthlyBudget)) {
+    return {
+      ok: false,
+      error: "Le budget mensuel doit être un nombre positif.",
+      status: 400,
+    };
+  }
+
+  return { ok: true, fields: { file, accountName, monthlyBudget } };
+}
