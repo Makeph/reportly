@@ -8,3 +8,6 @@ build
 next-env.d.ts
 *.tsbuildinfo
 .DS_Store
+
+# fichiers de travail du CLI Supabase
+supabase/.temp/
