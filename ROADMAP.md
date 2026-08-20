@@ -1,12 +1,30 @@
 # Reportly — Roadmap : du code au live
 
-> État au 2026-07-29 : **S1→S5 codées, build vert**. La boucle produit complète
-> est en place : signup → source de données → audit → brief quotidien → rapport mensuel → portail.
-> Code dans `C:\au2\reportly\app\`. Détails techniques : `app/README.md` + `MVP_ARCHITECTURE.md`.
+> État au 2026-08-20 : **boucle produit complète, build vert (18 routes), 33 tests, 0 vulnérabilité**.
+> signup → source de données → audit → brief quotidien → rapport mensuel → portail white-label.
+> Code dans `app/`. Détails techniques : `app/README.md` + `MVP_ARCHITECTURE.md`.
 >
-> ✅ **Fait** : Supabase branché (région EU, tables créées, magic-link opérationnel) · portail
-> sécurisé par lien signé HMAC · seed de démonstration (`npm run seed:demo`) · KPIs enrichis
-> (conversions, CPA, ROAS) · emails lifecycle · **import CSV** · tests du noyau.
+> ✅ **Fait** : Supabase (EU, magic-link) · **import CSV** comme source native · KPIs enrichis
+> (conversions, CPA, ROAS) · portail signé HMAC **révocable** · réglages white-label · emails
+> lifecycle dédupliqués · crons authentifiés en Bearer à temps constant · **contrôle
+> d'abonnement et quotas côté serveur** · Next 16.3.1 · ESLint 9 · tests du noyau.
+
+---
+
+## Avant la mise en production — ce qui manque vraiment
+
+Le code est prêt ; ce qui bloque relève de comptes à ouvrir et de deux actions en base.
+
+| Bloquant | Nature | Qui |
+|---|---|---|
+| Migrations 0005 et 0006 non appliquées | SQL Editor Supabase — `app/supabase/MIGRATIONS_A_APPLIQUER.sql` | toi |
+| Projet Supabase en pause | bouton *Restore* | toi |
+| Stripe non configuré | 3 prix + clés + webhook → conversion essai/payant | toi |
+| Resend non configuré | domaine vérifié → brief et emails lifecycle | toi |
+| Meta non configuré | app Business + `ads_read` → source automatique (pas bloquant : le CSV la remplace en bêta) | toi |
+| Déploiement Vercel | les crons ne tournent QUE déployés | à faire ensemble |
+
+Tant que Stripe et Resend ne sont pas branchés, le produit fonctionne mais ne facture pas et n'envoie rien : l'essai reste utilisable, les emails sont ignorés proprement avec un log.
 
 ---
 
@@ -67,7 +85,8 @@ En attendant, tu peux aussi tester Meta en **mode dev** (toi = testeur de ton ap
 - [ ] **Stripe** (conversion essai→payant) : 3 produits récurrents (79/149/299), copier les Price IDs,
       `STRIPE_SECRET_KEY`, webhook (`stripe listen --forward-to localhost:3000/api/stripe/webhook`) → `STRIPE_WEBHOOK_SECRET`.
 - [ ] **Resend** (email du brief) : clé API + **domaine d'envoi vérifié** → `RESEND_API_KEY`, `BRIEF_FROM_EMAIL`.
-      Test : `GET /api/cron/daily?secret=<CRON_SECRET>` → le brief arrive par mail.
+      Test : `curl -H "Authorization: Bearer <CRON_SECRET>" .../api/cron/daily` → le brief arrive par mail.
+      (Le secret en paramètre d'URL n'est plus accepté : il fuitait dans les journaux.)
 - [ ] **Anthropic** (synthèse du rapport) : `ANTHROPIC_API_KEY`. Test : bouton « Générer » → ouvrir le portail
       `/portal/<accountId>/<période>`. (Sans clé, un rapport « fallback » se génère quand même.)
 
@@ -90,10 +109,10 @@ recevoir son brief demain matin et son rapport en fin de mois — sans que tu d�
 ## Phase 6 — S5 : polish + croissance (après que la boucle tourne en vrai)
 
 ### Code (par ordre d'impact)
-- [ ] **KPIs enrichis** : pull conversions/CPA/ROAS depuis Meta (aujourd'hui : dépense seule).
-- [ ] **Share-token portail** : sécuriser `/portal/...` par un jeton signé (aujourd'hui : URL-capability par uuid).
-- [ ] **Emails lifecycle** (Resend) : onboarding « connecte une source », « essai se termine dans 3 j »,
-      « ton 1er rapport est prêt » → c'est ton « follow-up » sans appeler.
+- [x] **KPIs enrichis** : conversions/CPA/ROAS calculés et affichés (rapport, portail, dashboard).
+- [x] **Share-token portail** : jeton HMAC signé, versionné par agence et révocable depuis les réglages.
+- [x] **Emails lifecycle** (Resend) : onboarding, essai J-3 et premier rapport — dédupliqués via `lifecycle_event`.
+      Reste à brancher la clé Resend pour qu'ils partent réellement.
 - [ ] **Chat support écrit** (Crisp/Chatwoot) : câbler le token (vide sur la landing) — ton seul canal de contact.
 - [ ] **Sous-domaine white-label custom** (`rapports.agence.fr`) pour le plan Pro.
 - [ ] **PDF serveur** (Playwright) si tu veux joindre le PDF à l'email (aujourd'hui : impression navigateur).
