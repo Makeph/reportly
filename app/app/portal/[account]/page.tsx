@@ -5,7 +5,11 @@ import {
   listReportsForAccount,
   formatPeriodFr,
 } from "@/lib/report";
-import { makeShareToken, verifyShareToken } from "@/lib/share-token";
+import {
+  getPortalTokenVersion,
+  makeShareToken,
+  verifyShareToken,
+} from "@/lib/share-token";
 
 export default async function PortalListPage({
   params,
@@ -16,11 +20,14 @@ export default async function PortalListPage({
 }) {
   const { account } = await params;
   const sp = await searchParams;
-  if (!sp.t || !verifyShareToken(account, sp.t)) notFound();
-
-  const token = makeShareToken(account);
   const header = await getPortalHeader(account);
   if (!header) notFound();
+  const portalTokenVersion = getPortalTokenVersion(header.agency?.branding);
+  if (!sp.t || !verifyShareToken(account, sp.t, portalTokenVersion)) {
+    notFound();
+  }
+
+  const token = makeShareToken(account, portalTokenVersion);
 
   const brand = (header.agency?.branding ?? {}) as Record<string, string>;
   const primary = brand.color || "#1F6BFF";

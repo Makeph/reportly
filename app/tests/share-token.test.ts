@@ -47,3 +47,14 @@ test("un token de longueur différente échoue sans jeter", () => {
 test("deux comptes différents n'ont pas le même token", () => {
   assert.notEqual(makeShareToken("account-1"), makeShareToken("account-2"));
 });
+
+test("la version 1 reste la version par défaut", () => {
+  assert.equal(makeShareToken("account-1"), makeShareToken("account-1", 1));
+});
+
+test("un token émis en version N est refusé en version N+1", () => {
+  const token = makeShareToken("account-1", 4);
+
+  assert.equal(verifyShareToken("account-1", token, 4), true);
+  assert.equal(verifyShareToken("account-1", token, 5), false);
+});

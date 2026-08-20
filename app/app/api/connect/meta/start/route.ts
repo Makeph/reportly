@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
+import { requireActiveAgency } from "@/lib/billing";
 import { createClient } from "@/lib/supabase/server";
 
 // Démarre le flux OAuth Meta : pose un state anti-CSRF puis redirige vers le dialog.
 export async function GET(request: Request) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
+  const access = await requireActiveAgency(supabase);
+  if (!access.ok) {
+    if (access.code === "unauthenticated") {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+    if (access.code === "subscription_required") {
+      return NextResponse.redirect(
+        new URL("/dashboard?error=subscription", request.url)
+      );
+    }
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

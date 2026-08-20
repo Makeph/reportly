@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { maxClientAccounts, requireActiveAgency } from "@/lib/billing";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptToken } from "@/lib/crypto";
@@ -28,17 +29,17 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.redirect(`${origin}/login`);
-
-  const { data: agency } = await supabase
-    .from("agency")
-    .select("id")
-    .limit(1)
-    .maybeSingle<{ id: string }>();
-  if (!agency) return dash("connect=meta_error&reason=agency");
+  const access = await requireActiveAgency(supabase);
+  if (!access.ok) {
+    if (access.code === "unauthenticated") {
+      return NextResponse.redirect(`${origin}/login`);
+    }
+    if (access.code === "subscription_required") {
+      return dash("error=subscription");
+    }
+    return dash("connect=meta_error&reason=agency");
+  }
+  const { agency } = access;
 
   try {
     const redirectUri = `${origin}/api/connect/meta/callback`;
@@ -50,6 +51,39 @@ export async function GET(request: Request) {
       : null;
 
     const admin = createAdminClient();
+    const accounts = [
+      ...new Map(
+        (await listAdAccounts(token)).map((account) => [account.id, account])
+      ).values(),
+    ];
+
+    if (accounts.length) {
+      const externalIds = accounts.map((account) => account.id);
+      const { data: existingAccounts, error: existingAccountsError } = await admin
+        .from("client_account")
+        .select("external_id")
+        .eq("agency_id", agency.id)
+        .in("external_id", externalIds);
+      if (existingAccountsError) throw existingAccountsError;
+
+      const { count, error: countError } = await admin
+        .from("client_account")
+        .select("id", { count: "exact", head: true })
+        .eq("agency_id", agency.id);
+      if (countError) throw countError;
+
+      const existingIds = new Set(
+        (existingAccounts ?? []).map((account) => account.external_id)
+      );
+      const newAccounts = externalIds.filter((id) => !existingIds.has(id)).length;
+      const available = Math.max(
+        0,
+        maxClientAccounts(agency) - (count ?? 0)
+      );
+      if (newAccounts > available) {
+        return dash("error=quota");
+      }
+    }
 
     // Une seule connexion Meta par agence pour le MVP : on repart propre.
     await admin
@@ -71,7 +105,6 @@ export async function GET(request: Request) {
       .select("id")
       .single();
 
-    const accounts = await listAdAccounts(token);
     if (accounts.length && conn) {
       await admin.from("client_account").upsert(
         accounts.map((a) => ({

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { maxClientAccounts, requireActiveAgency } from "@/lib/billing";
 import { parseCsvImport } from "@/lib/csv-import";
 import { scanAgency } from "@/lib/scan";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -30,23 +31,11 @@ function parseBudget(value: FormDataEntryValue | null): number | null {
 // Importe une source CSV complète : compte, métriques, puis audit immédiat.
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
-  }
-
-  const { data: membership } = await supabase
-    .from("agency_member")
-    .select("agency_id")
-    .eq("user_id", user.id)
-    .limit(1)
-    .maybeSingle<{ agency_id: string }>();
-  if (!membership?.agency_id) {
+  const access = await requireActiveAgency(supabase);
+  if (!access.ok) {
     return NextResponse.json(
-      { error: "Aucune agence associée à cet utilisateur." },
-      { status: 403 }
+      { error: access.error, code: access.code },
+      { status: access.status }
     );
   }
 
@@ -102,10 +91,41 @@ export async function POST(request: Request) {
     );
   }
 
-  const agencyId = membership.agency_id;
+  const agencyId = access.agency.id;
   const admin = createAdminClient();
 
   try {
+    const externalId = `csv-${slugify(accountName)}`;
+    const { data: existingAccount, error: accountReadError } = await admin
+      .from("client_account")
+      .select("id")
+      .eq("agency_id", agencyId)
+      .eq("external_id", externalId)
+      .maybeSingle<{ id: string }>();
+    if (accountReadError) throw accountReadError;
+
+    if (!existingAccount) {
+      const { count, error: countError } = await admin
+        .from("client_account")
+        .select("id", { count: "exact", head: true })
+        .eq("agency_id", agencyId);
+      if (countError) throw countError;
+
+      const current = count ?? 0;
+      const max = maxClientAccounts(access.agency);
+      if (current >= max) {
+        return NextResponse.json(
+          {
+            error: `Le quota de ${max} comptes clients de votre plan est atteint. Passez à un plan supérieur pour en ajouter un.`,
+            code: "client_account_quota_reached",
+            current,
+            max,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const { data: existingConnection, error: connectionReadError } = await admin
       .from("connection")
       .select("id")
@@ -132,7 +152,6 @@ export async function POST(request: Request) {
       connectionId = connection.id;
     }
 
-    const externalId = `csv-${slugify(accountName)}`;
     const { data: account, error: accountError } = await admin
       .from("client_account")
       .upsert(

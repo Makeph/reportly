@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getEntitlement, type Entitlement } from "@/lib/billing";
@@ -128,16 +129,20 @@ async function sendDailyLifecycleEmails(
 
 // Cron quotidien (07:30 Paris ≈ 05:30 UTC, voir vercel.json).
 // Sécurisé par CRON_SECRET : Vercel Cron envoie `Authorization: Bearer <CRON_SECRET>`.
-// Déclenchement manuel possible via ?secret=<CRON_SECRET>.
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET ?? "";
-  const url = new URL(request.url);
-  const provided =
-    request.headers.get("authorization")?.replace("Bearer ", "") ??
-    url.searchParams.get("secret") ??
-    "";
+  const authorization = request.headers.get("authorization") ?? "";
+  const provided = authorization.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : "";
+  const secretBuffer = Buffer.from(secret);
+  const providedBuffer = Buffer.from(provided);
 
-  if (!secret || provided !== secret) {
+  if (
+    !secret ||
+    providedBuffer.length !== secretBuffer.length ||
+    !timingSafeEqual(providedBuffer, secretBuffer)
+  ) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

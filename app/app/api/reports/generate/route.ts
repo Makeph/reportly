@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
+import { requireActiveAgency } from "@/lib/billing";
 import { createClient } from "@/lib/supabase/server";
 import { generateReport, prevMonthPeriod } from "@/lib/report";
 
 // Génération manuelle d'un rapport (depuis le dashboard). Authentifié + vérif RLS.
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const access = await requireActiveAgency(supabase);
+  if (!access.ok) {
+    return NextResponse.json(
+      { error: access.error, code: access.code },
+      { status: access.status }
+    );
   }
 
   const { accountId, period } = (await request.json()) as {

@@ -8,6 +8,9 @@ type ImportResponse = {
   findings?: number;
   error?: string;
   errors?: string[];
+  code?: string;
+  current?: number;
+  max?: number;
 };
 
 type Message = {
@@ -37,6 +40,25 @@ export default function CsvImportPage() {
       const data = (await response.json()) as ImportResponse;
 
       if (!response.ok) {
+        if (response.status === 402) {
+          setMessage({
+            kind: "err",
+            text:
+              "Votre essai ou abonnement n’est plus actif. Retournez au tableau de bord pour choisir un plan avant d’importer.",
+          });
+          return;
+        }
+        if (data.code === "client_account_quota_reached") {
+          const usage =
+            data.current !== undefined && data.max !== undefined
+              ? ` Vous utilisez ${data.current} / ${data.max} comptes clients.`
+              : "";
+          setMessage({
+            kind: "err",
+            text: `Le quota de comptes clients de votre plan est atteint.${usage} Passez à un plan supérieur pour ajouter ce compte.`,
+          });
+          return;
+        }
         const details = data.errors?.length ? ` ${data.errors.join(" ")}` : "";
         setMessage({
           kind: "err",

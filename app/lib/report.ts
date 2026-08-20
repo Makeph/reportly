@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { claudeJson } from "@/lib/anthropic";
 import { sendLifecycleEmail } from "@/lib/email";
 import { firstReportReady } from "@/lib/lifecycle-emails";
-import { makeShareToken } from "@/lib/share-token";
+import { getPortalTokenVersion, makeShareToken } from "@/lib/share-token";
 
 const MONTHS_FR = [
   "janvier", "février", "mars", "avril", "mai", "juin",
@@ -325,11 +325,17 @@ Réponds avec ce JSON exact:
       if (email) {
         const { data: agency } = await admin
           .from("agency")
-          .select("name")
+          .select("name, branding")
           .eq("id", acc.agency_id)
-          .maybeSingle<{ name: string | null }>();
+          .maybeSingle<{
+            name: string | null;
+            branding: Record<string, unknown> | null;
+          }>();
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
-        const token = makeShareToken(acc.id);
+        const token = makeShareToken(
+          acc.id,
+          getPortalTokenVersion(agency?.branding)
+        );
         const message = firstReportReady({
           agencyName: agency?.name || "votre agence",
           accountName: acc.name,

@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getReportForPortal, formatPeriodFr } from "@/lib/report";
-import { makeShareToken, verifyShareToken } from "@/lib/share-token";
+import {
+  getPortalTokenVersion,
+  makeShareToken,
+  verifyShareToken,
+} from "@/lib/share-token";
 import PrintButton from "@/app/portal/print-button";
 
 function fmt(n: number, currency: string) {
@@ -46,11 +50,14 @@ export default async function PortalReportPage({
 }) {
   const { account, period } = await params;
   const sp = await searchParams;
-  if (!sp.t || !verifyShareToken(account, sp.t)) notFound();
-
-  const token = makeShareToken(account);
   const data = await getReportForPortal(account, period);
   if (!data) notFound();
+  const portalTokenVersion = getPortalTokenVersion(data.agency?.branding);
+  if (!sp.t || !verifyShareToken(account, sp.t, portalTokenVersion)) {
+    notFound();
+  }
+
+  const token = makeShareToken(account, portalTokenVersion);
 
   const { report, account: acc, agency } = data;
   const kpis = report.kpis;

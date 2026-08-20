@@ -11,15 +11,32 @@ function getShareTokenSecret(): string {
   return secret;
 }
 
-export function makeShareToken(accountId: string): string {
+export function getPortalTokenVersion(branding: unknown): number {
+  if (!branding || typeof branding !== "object" || Array.isArray(branding)) {
+    return 1;
+  }
+
+  const version = (branding as Record<string, unknown>).portalTokenVersion;
+  return Number.isSafeInteger(version) && Number(version) >= 1
+    ? Number(version)
+    : 1;
+}
+
+export function makeShareToken(accountId: string, version = 1): string {
+  // La version 1 conserve les liens émis avant l'ajout de la révocation.
+  const payload = version === 1 ? accountId : `${version}:${accountId}`;
   return createHmac("sha256", getShareTokenSecret())
-    .update(accountId)
+    .update(payload)
     .digest("base64url")
     .slice(0, 32);
 }
 
-export function verifyShareToken(accountId: string, token: string): boolean {
-  const expected = makeShareToken(accountId);
+export function verifyShareToken(
+  accountId: string,
+  token: string,
+  version = 1
+): boolean {
+  const expected = makeShareToken(accountId, version);
   const expectedBuffer = Buffer.from(expected);
   const tokenBuffer = Buffer.from(token);
 

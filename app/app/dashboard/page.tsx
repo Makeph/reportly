@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getEntitlement, type AgencyRow } from "@/lib/billing";
-import { makeShareToken } from "@/lib/share-token";
+import {
+  getEntitlement,
+  maxClientAccounts,
+  type AgencyRow,
+} from "@/lib/billing";
+import { getPortalTokenVersion, makeShareToken } from "@/lib/share-token";
 import { signOut } from "./actions";
 import PlanButtons from "./plan-buttons";
 import GenerateReportButton from "./report-buttons";
@@ -19,6 +23,10 @@ type ClientAccount = {
   id: string;
   name: string;
   currency: string | null;
+};
+
+type DashboardAgency = Exclude<AgencyRow, null> & {
+  branding: Record<string, unknown> | null;
 };
 
 type SourceConnection = {
@@ -56,7 +64,11 @@ function providerLabel(provider: string): string {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connect?: string; findings?: string }>;
+  searchParams: Promise<{
+    connect?: string;
+    error?: string;
+    findings?: string;
+  }>;
 }) {
   const sp = await searchParams;
   const supabase = await createClient();
@@ -67,10 +79,11 @@ export default async function DashboardPage({
 
   const { data: agency } = await supabase
     .from("agency")
-    .select("id, name, plan, trial_ends_at, subscription_status")
+    .select("id, name, plan, trial_ends_at, subscription_status, branding")
     .limit(1)
-    .maybeSingle<AgencyRow>();
+    .maybeSingle<DashboardAgency>();
   const ent = getEntitlement(agency);
+  const portalTokenVersion = getPortalTokenVersion(agency?.branding);
 
   let connections: SourceConnection[] = [];
   if (agency) {
@@ -85,6 +98,10 @@ export default async function DashboardPage({
   const { count: accountCount } = await supabase
     .from("client_account")
     .select("id", { count: "exact", head: true });
+  const clientAccountCount = accountCount ?? 0;
+  const clientAccountLimit = maxClientAccounts(agency);
+  const sourcesDisabled =
+    !ent.active || clientAccountCount >= clientAccountLimit;
 
   const { data: accounts } = await supabase
     .from("client_account")
@@ -157,6 +174,18 @@ export default async function DashboardPage({
           La connexion Meta a échoué. Vérifiez l&apos;app Meta puis réessayez.
         </div>
       )}
+      {sp.error === "subscription" && (
+        <div className="banner err">
+          Votre essai ou abonnement n&apos;est plus actif. Choisissez un plan
+          pour continuer.
+        </div>
+      )}
+      {sp.error === "quota" && (
+        <div className="banner err">
+          La connexion ajouterait plus de comptes clients que votre plan ne
+          le permet. Passez à un plan supérieur puis réessayez.
+        </div>
+      )}
 
       <div className="card" style={{ margin: "24px 0" }}>
         <h2>Abonnement</h2>
@@ -190,9 +219,6 @@ export default async function DashboardPage({
                 </span>
               );
             })}
-            <span className="muted">
-              <b>{accountCount ?? 0}</b> compte(s) client(s)
-            </span>
           </div>
         ) : (
           <p className="muted">
@@ -201,16 +227,43 @@ export default async function DashboardPage({
           </p>
         )}
         <p className="muted">
+          <b>{clientAccountCount}</b> / {Number.isFinite(clientAccountLimit)
+            ? clientAccountLimit
+            : "∞"}{" "}
+          comptes clients
+        </p>
+        <p className="muted">
           Connectez Meta Ads ou importez les exports de Matomo, TikTok Ads et
           vos régies locales.
         </p>
         <div className="row">
-          <a className="btn" href="/api/connect/meta/start">
-            Connecter Meta Ads
-          </a>
-          <a className="btn" href="/dashboard/import">
-            Importer un fichier
-          </a>
+          {sourcesDisabled ? (
+            <>
+              <span
+                aria-disabled="true"
+                className="btn"
+                style={{ cursor: "not-allowed", opacity: 0.4 }}
+              >
+                Connecter Meta Ads
+              </span>
+              <span
+                aria-disabled="true"
+                className="btn"
+                style={{ cursor: "not-allowed", opacity: 0.4 }}
+              >
+                Importer un fichier
+              </span>
+            </>
+          ) : (
+            <>
+              <a className="btn" href="/api/connect/meta/start">
+                Connecter Meta Ads
+              </a>
+              <a className="btn" href="/dashboard/import">
+                Importer un fichier
+              </a>
+            </>
+          )}
         </div>
       </div>
 
@@ -264,7 +317,7 @@ export default async function DashboardPage({
                   <GenerateReportButton accountId={a.id} />
                   <a
                     className="btn sec"
-                    href={`/portal/${a.id}?t=${makeShareToken(a.id)}`}
+                    href={`/portal/${a.id}?t=${makeShareToken(a.id, portalTokenVersion)}`}
                     target="_blank"
                     rel="noreferrer"
                   >

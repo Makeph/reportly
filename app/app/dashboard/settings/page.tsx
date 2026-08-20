@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import RevokePortalLinksForm from "./revoke-portal-links-form";
 import SettingsForm from "./settings-form";
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
@@ -55,6 +56,7 @@ export default async function SettingsPage() {
           typeof branding.logo === "string" ? branding.logo : ""
         }
       />
+      <RevokePortalLinksForm />
     </div>
   );
 }

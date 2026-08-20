@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getPortalTokenVersion } from "@/lib/share-token";
 
 export type SettingsState = {
   status: "idle" | "success" | "error";
@@ -107,5 +108,69 @@ export async function saveSettings(
   return {
     status: "success",
     message: "Réglages enregistrés.",
+  };
+}
+
+export async function revokePortalLinks(
+  _previousState: SettingsState,
+  _formData: FormData
+): Promise<SettingsState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return {
+      status: "error",
+      message: "Votre session a expiré. Reconnectez-vous pour révoquer les liens.",
+    };
+  }
+
+  const { data: agency, error: readError } = await supabase
+    .from("agency")
+    .select("id, branding")
+    .limit(1)
+    .maybeSingle<{ id: string; branding: Record<string, unknown> | null }>();
+
+  if (readError || !agency) {
+    return {
+      status: "error",
+      message: "Impossible de charger les réglages de l’agence.",
+    };
+  }
+
+  const currentBranding =
+    agency.branding &&
+    typeof agency.branding === "object" &&
+    !Array.isArray(agency.branding)
+      ? agency.branding
+      : {};
+
+  const { data: updatedAgency, error: updateError } = await supabase
+    .from("agency")
+    .update({
+      branding: {
+        ...currentBranding,
+        portalTokenVersion: getPortalTokenVersion(currentBranding) + 1,
+      },
+    })
+    .eq("id", agency.id)
+    .select("id")
+    .maybeSingle<{ id: string }>();
+
+  if (updateError || !updatedAgency) {
+    return {
+      status: "error",
+      message: "Seul le propriétaire de l’agence peut révoquer ces liens.",
+    };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/settings");
+  revalidatePath("/portal", "layout");
+
+  return {
+    status: "success",
+    message: "Tous les anciens liens de portail ont été révoqués.",
   };
 }
