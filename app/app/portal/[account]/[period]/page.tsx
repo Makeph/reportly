@@ -113,8 +113,12 @@ export default async function PortalReportPage({
         .rp-title .rp-sub{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
           text-transform:uppercase;color:var(--faint);margin-top:10px}
 
-        /* cartouche de chiffres : une réglure, pas des cartes flottantes */
-        .rp-cartouche{position:relative;margin-top:32px;background:var(--paper-2);
+        /* cartouche de chiffres : une réglure, pas des cartes flottantes.
+           Le tampon vit dans l'enveloppe, pas dans la grille : le cartouche
+           découpe ce qui dépasse, et un enfant de plus fausserait les nth-child
+           qui dessinent les filets. */
+        .rp-cartouche-wrap{position:relative;margin-top:32px}
+        .rp-cartouche{background:var(--paper-2);
           border:1px solid var(--rule);border-radius:2px;overflow:hidden;
           display:grid;grid-template-columns:repeat(3,1fr)}
         @media(max-width:640px){.rp-cartouche{grid-template-columns:repeat(2,1fr)}}
@@ -212,7 +216,7 @@ export default async function PortalReportPage({
         </div>
       </div>
 
-      <div className="rp-cartouche">
+      <div className="rp-cartouche-wrap">
         {detected > 0 && (
           <span
             className={`stamp rp-seal ${allResolved ? "green" : "amber"}`}
@@ -222,35 +226,39 @@ export default async function PortalReportPage({
           </span>
         )}
 
-        <Kpi label="Dépense" value={fmt(kpis?.spend ?? 0, currency)}>
-          <Delta delta={kpis?.deltaPct} />
-        </Kpi>
-        <Kpi
-          label="Conversions"
-          value={
-            kpis?.conversions !== undefined ? fmtNumber(kpis.conversions) : "—"
-          }
-        >
-          <Delta delta={kpis?.conversionsDeltaPct} />
-        </Kpi>
-        <Kpi
-          label="CPA moyen"
-          value={
-            kpis?.cpa !== null && kpis?.cpa !== undefined
-              ? fmt(kpis.cpa, currency)
-              : "—"
-          }
-        >
-          {/* Un CPA qui monte n'est pas une bonne nouvelle. */}
-          <Delta delta={kpis?.cpaDeltaPct} positiveIsGood={false} />
-        </Kpi>
-        {kpis?.roas !== null && kpis?.roas !== undefined && (
-          <Kpi label="ROAS" value={fmtDecimal(kpis.roas)}>
-            <Delta delta={kpis.roasDeltaPct} />
+        <div className="rp-cartouche">
+          <Kpi label="Dépense" value={fmt(kpis?.spend ?? 0, currency)}>
+            <Delta delta={kpis?.deltaPct} />
           </Kpi>
-        )}
-        <Kpi label="Incidents détectés" value={String(detected)} />
-        <Kpi label="Corrigés" value={`${resolved}/${detected}`} />
+          <Kpi
+            label="Conversions"
+            value={
+              kpis?.conversions !== undefined
+                ? fmtNumber(kpis.conversions)
+                : "—"
+            }
+          >
+            <Delta delta={kpis?.conversionsDeltaPct} />
+          </Kpi>
+          <Kpi
+            label="CPA moyen"
+            value={
+              kpis?.cpa !== null && kpis?.cpa !== undefined
+                ? fmt(kpis.cpa, currency)
+                : "—"
+            }
+          >
+            {/* Un CPA qui monte n'est pas une bonne nouvelle. */}
+            <Delta delta={kpis?.cpaDeltaPct} positiveIsGood={false} />
+          </Kpi>
+          {kpis?.roas !== null && kpis?.roas !== undefined && (
+            <Kpi label="ROAS" value={fmtDecimal(kpis.roas)}>
+              <Delta delta={kpis.roasDeltaPct} />
+            </Kpi>
+          )}
+          <Kpi label="Incidents détectés" value={String(detected)} />
+          <Kpi label="Corrigés" value={`${resolved}/${detected}`} />
+        </div>
       </div>
 
       <section className="rp-section">
