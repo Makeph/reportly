@@ -1,10 +1,23 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, Fira_Code } from "next/font/google";
+import { Fraunces, Spectral, IBM_Plex_Mono } from "next/font/google";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" });
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const fira = Fira_Code({ subsets: ["latin"], variable: "--font-fira" });
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-disp",
+});
+const spectral = Spectral({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-body",
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
   title: "Reportly — espace agence",
@@ -17,7 +30,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${jakarta.variable} ${inter.variable} ${fira.variable}`}>
+    <html
+      lang="fr"
+      className={`${fraunces.variable} ${spectral.variable} ${plexMono.variable}`}
+    >
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

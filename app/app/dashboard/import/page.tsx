@@ -240,22 +240,6 @@ export default function CsvImportPage() {
 
   return (
     <main style={styles.container}>
-      <style>{`
-        :root {
-          --paper: #F5EFE2;
-          --paper-2: #FBF7EC;
-          --ink: #23261D;
-          --ink-2: #4C4A3C;
-          --faint: #8B8368;
-          --rule: #D9CEB2;
-          --red: #BC3A1D;
-          --green: #2F5D45;
-          --disp: ‘Fraunces’, Georgia, serif;
-          --body: ‘Spectral’, Georgia, serif;
-          --mono: ‘IBM Plex Mono’, ui-monospace, Consolas, monospace;
-        }
-      `}</style>
-
       <a style={styles.backLink} href="/dashboard">
         ← Retour au tableau de bord
       </a>

@@ -25,27 +25,6 @@ export default function LoginPage() {
 
   return (
     <div style={styles.container}>
-      <style>{`
-        :root {
-          --paper: #F5EFE2;
-          --paper-2: #FBF7EC;
-          --ink: #23261D;
-          --ink-2: #4C4A3C;
-          --faint: #8B8368;
-          --rule: #D9CEB2;
-          --red: #BC3A1D;
-          --disp: 'Fraunces', Georgia, serif;
-          --body: 'Spectral', Georgia, serif;
-          --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
-        }
-        body {
-          background: var(--paper);
-          color: var(--ink-2);
-          font-family: var(--body);
-          margin: 0;
-        }
-      `}</style>
-
       <div style={styles.box}>
         <div style={styles.header}>
           <h1 style={styles.logo}>

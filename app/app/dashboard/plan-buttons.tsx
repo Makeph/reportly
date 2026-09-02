@@ -8,39 +8,13 @@ const PLANS = [
   { id: "pro", label: "Pro — 299 €", primary: false },
 ];
 
-const btnStyle = {
-  fontFamily: "var(--mono)",
-  fontSize: "12px",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase" as const,
-  padding: "12px 18px",
-  border: "1.5px solid",
-  borderRadius: "3px",
-  cursor: "pointer",
-  transition: "all 0.15s",
-  fontWeight: 600,
-} as React.CSSProperties;
-
-const btnPrimary = {
-  ...btnStyle,
-  background: "var(--ink)",
-  color: "var(--paper)",
-  borderColor: "var(--ink)",
-  boxShadow: "2px 2px 0 rgba(35, 38, 29, 0.15)",
-} as React.CSSProperties;
-
-const btnSecondary = {
-  ...btnStyle,
-  background: "var(--paper)",
-  color: "var(--ink)",
-  borderColor: "var(--rule)",
-} as React.CSSProperties;
-
 export default function PlanButtons() {
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function choose(plan: string) {
     setLoading(plan);
+    setError(null);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -49,24 +23,38 @@ export default function PlanButtons() {
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else alert(data.error ?? "Erreur Stripe");
+      else setError(data.error ?? "Le paiement n’a pas pu s’ouvrir.");
+    } catch {
+      setError("Le paiement n’a pas pu s’ouvrir. Vérifiez votre connexion.");
     } finally {
       setLoading(null);
     }
   }
 
   return (
-    <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-      {PLANS.map((p) => (
-        <button
-          key={p.id}
-          style={p.primary ? btnPrimary : btnSecondary}
-          disabled={loading !== null}
-          onClick={() => choose(p.id)}
+    <>
+      <div className="row" style={{ marginTop: 18 }}>
+        {PLANS.map((p) => (
+          <button
+            key={p.id}
+            className={p.primary ? "btn sm" : "btn sec sm"}
+            disabled={loading !== null}
+            onClick={() => choose(p.id)}
+          >
+            {loading === p.id ? "Redirection…" : p.label}
+            {p.primary && <span className="arr">→</span>}
+          </button>
+        ))}
+      </div>
+      {error && (
+        <p
+          className="muted"
+          style={{ color: "var(--red)", fontSize: 13, marginTop: 10 }}
+          role="alert"
         >
-          {loading === p.id ? "Redirection…" : p.label}
-        </button>
-      ))}
-    </div>
+          {error}
+        </p>
+      )}
+    </>
   );
 }

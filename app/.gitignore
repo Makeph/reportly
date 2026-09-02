@@ -11,3 +11,6 @@ next-env.d.ts
 
 # fichiers de travail du CLI Supabase
 supabase/.temp/
+
+.vercel
+.env*
