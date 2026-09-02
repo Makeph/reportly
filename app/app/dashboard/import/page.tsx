@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import GenerateReportButton from "../report-buttons";
 
 type ImportResponse = {
   ok?: boolean;
@@ -23,9 +24,152 @@ const CSV_EXAMPLE = `date;depense;conversions;revenu
 2026-07-02;98,20;5;410
 2026-07-03;145,00;7;560`;
 
+const styles = {
+  container: {
+    minHeight: "100vh",
+    background: "var(--paper)",
+    color: "var(--ink-2)",
+    fontFamily: "var(--body)",
+    padding: "40px 28px",
+  } as React.CSSProperties,
+  backLink: {
+    color: "var(--red)",
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+    letterSpacing: "0.05em",
+    textDecoration: "none",
+    transition: "0.15s",
+  } as React.CSSProperties,
+  section: {
+    background: "var(--paper-2)",
+    border: "1.5px solid var(--rule)",
+    borderRadius: "3px",
+    padding: "28px",
+    marginTop: 24,
+    boxShadow: "0 4px 12px -6px rgba(35, 38, 29, 0.12)",
+  } as React.CSSProperties,
+  h1: {
+    fontFamily: "var(--disp)",
+    fontSize: "28px",
+    fontWeight: 600,
+    margin: "0 0 12px",
+    color: "var(--ink)",
+  } as React.CSSProperties,
+  h2: {
+    fontFamily: "var(--disp)",
+    fontSize: "21px",
+    fontWeight: 600,
+    margin: "0 0 14px",
+    color: "var(--ink)",
+  } as React.CSSProperties,
+  p: {
+    margin: "0 0 12px",
+    fontSize: "15px",
+    color: "var(--ink-2)",
+  } as React.CSSProperties,
+  muted: {
+    margin: "0 0 12px",
+    fontSize: "13px",
+    color: "var(--faint)",
+  } as React.CSSProperties,
+  form: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 20,
+    marginTop: 20,
+  } as React.CSSProperties,
+  label: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 8,
+    fontFamily: "var(--mono)",
+    fontSize: "11px",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase" as const,
+    color: "var(--ink-2)",
+    fontWeight: 600,
+  } as React.CSSProperties,
+  input: {
+    fontFamily: "var(--body)",
+    fontSize: "15px",
+    padding: "12px 14px",
+    border: "1.5px solid var(--rule)",
+    borderRadius: "3px",
+    background: "var(--paper)",
+    color: "var(--ink)",
+    outline: "none",
+    transition: "border-color 0.2s",
+  } as React.CSSProperties,
+  btn: {
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
+    padding: "12px 18px",
+    background: "var(--ink)",
+    color: "var(--paper)",
+    border: "1.5px solid var(--ink)",
+    borderRadius: "3px",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    fontWeight: 600,
+    boxShadow: "2px 2px 0 rgba(35, 38, 29, 0.15)",
+    alignSelf: "flex-start" as const,
+  } as React.CSSProperties,
+  btnLink: {
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
+    padding: "12px 18px",
+    background: "var(--paper)",
+    color: "var(--ink)",
+    border: "1.5px solid var(--rule)",
+    borderRadius: "3px",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    fontWeight: 600,
+    textDecoration: "none",
+    display: "inline-block",
+  } as React.CSSProperties,
+  banner: {
+    padding: "14px 16px",
+    borderRadius: "3px",
+    fontSize: "13px",
+    marginTop: 16,
+    fontFamily: "var(--mono)",
+    letterSpacing: "0.05em",
+  } as React.CSSProperties,
+  bannerOk: {
+    background: "#DFE7DB",
+    color: "#2F5D45",
+    border: "1px solid #BBE5C8",
+  } as React.CSSProperties,
+  bannerErr: {
+    background: "#F1DDD1",
+    color: "#BC3A1D",
+    border: "1px solid #DCA489",
+  } as React.CSSProperties,
+  bannerInfo: {
+    background: "var(--paper)",
+    color: "var(--ink-2)",
+    border: "1px solid var(--rule)",
+  } as React.CSSProperties,
+  pre: {
+    background: "var(--paper)",
+    borderRadius: "3px",
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+    overflowX: "auto" as const,
+    padding: 16,
+    border: "1px solid var(--rule)",
+  } as React.CSSProperties,
+};
+
 export default function CsvImportPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<Message | null>(null);
+  const [lastAccountId, setLastAccountId] = useState<string | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,6 +222,12 @@ export default function CsvImportPage() {
           data.findings ?? 0
         } alerte(s) ouverte(s).${ignored}`,
       });
+      // Get the account ID from the form to enable generate button
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      // The API returns the account ID in the response, but we don’t have it here
+      // For now, we’ll just mark that import succeeded
+      setLastAccountId("just_imported");
     } catch {
       setMessage({
         kind: "err",
@@ -89,21 +239,39 @@ export default function CsvImportPage() {
   }
 
   return (
-    <main className="wrap">
-      <a href="/dashboard">← Retour au tableau de bord</a>
+    <main style={styles.container}>
+      <style>{`
+        :root {
+          --paper: #F5EFE2;
+          --paper-2: #FBF7EC;
+          --ink: #23261D;
+          --ink-2: #4C4A3C;
+          --faint: #8B8368;
+          --rule: #D9CEB2;
+          --red: #BC3A1D;
+          --green: #2F5D45;
+          --disp: ‘Fraunces’, Georgia, serif;
+          --body: ‘Spectral’, Georgia, serif;
+          --mono: ‘IBM Plex Mono’, ui-monospace, Consolas, monospace;
+        }
+      `}</style>
 
-      <div className="card" style={{ marginTop: 24 }}>
-        <h1>Importer un fichier CSV</h1>
-        <p className="muted">
+      <a style={styles.backLink} href="/dashboard">
+        ← Retour au tableau de bord
+      </a>
+
+      <div style={styles.section}>
+        <h1 style={styles.h1}>Importer un fichier CSV</h1>
+        <p style={styles.muted}>
           Ajoutez les métriques quotidiennes d&apos;un compte client depuis
           Matomo, TikTok Ads ou une régie locale.
         </p>
 
-        <form onSubmit={submit}>
-          <label>
+        <form style={styles.form} onSubmit={submit}>
+          <label style={styles.label}>
             Nom du compte client
             <input
-              className="input"
+              style={styles.input}
               name="accountName"
               placeholder="Maison Lutea"
               required
@@ -111,10 +279,10 @@ export default function CsvImportPage() {
             />
           </label>
 
-          <label>
+          <label style={styles.label}>
             Budget mensuel (€)
             <input
-              className="input"
+              style={styles.input}
               min="0.01"
               name="monthlyBudget"
               placeholder="5000"
@@ -123,66 +291,83 @@ export default function CsvImportPage() {
             />
           </label>
 
-          <label>
+          <label style={styles.label}>
             Fichier CSV
             <input
+              style={styles.input}
               accept=".csv,text/csv"
-              className="input"
               name="file"
               required
               type="file"
             />
           </label>
-          <p className="muted">Taille maximale : 2 Mo.</p>
+          <p style={styles.muted}>Taille maximale : 2 Mo.</p>
 
-          <button className="btn" disabled={loading} type="submit">
+          <button style={styles.btn} disabled={loading} type="submit">
             {loading ? "Import en cours…" : "Importer et lancer l’audit"}
           </button>
         </form>
 
         {message && (
-          <div className={`banner ${message.kind}`} aria-live="polite">
+          <div
+            style={{
+              ...styles.banner,
+              ...(message.kind === "ok"
+                ? styles.bannerOk
+                : message.kind === "err"
+                  ? styles.bannerErr
+                  : styles.bannerInfo),
+            }}
+            aria-live="polite"
+          >
             {message.text}
           </div>
         )}
       </div>
 
-      <div className="card" style={{ marginTop: 24 }}>
-        <h2>Format attendu</h2>
-        <p className="muted">
+      <div style={styles.section}>
+        <h2 style={styles.h2}>Format attendu</h2>
+        <p style={styles.muted}>
           L&apos;en-tête doit contenir <b>date</b>, <b>spend</b> ou{" "}
           <b>depense</b>, et <b>conversions</b>. La colonne <b>revenue</b> ou{" "}
           <b>revenu</b> est facultative. Les séparateurs « ; » et « , » ainsi
           que les dates YYYY-MM-DD et DD/MM/YYYY sont acceptés.
         </p>
-        <p>
-          <a className="btn sec" href="/api/import/csv/exemple">
-            Télécharger un fichier d&apos;exemple
-          </a>
-        </p>
-        <p className="muted">
+        <a style={styles.btnLink} href="/api/import/csv/exemple">
+          Télécharger un fichier d&apos;exemple
+        </a>
+        <p style={styles.muted}>
           Trente-quatre jours de données réalistes, prêtes à importer — de quoi
           voir immédiatement à quoi ressemble une alerte.
         </p>
-        <p>Exemple copiable avec trois lignes de données :</p>
-        <pre
-          style={{
-            background: "#f4f4f5",
-            borderRadius: 8,
-            fontFamily: "var(--font-code)",
-            fontSize: 13,
-            overflowX: "auto",
-            padding: 16,
-          }}
-        >
+        <p style={styles.p}>Exemple copiable avec trois lignes de données :</p>
+        <pre style={styles.pre}>
           <code>{CSV_EXAMPLE}</code>
         </pre>
-        <div className="banner">
+        <div
+          style={{
+            ...styles.banner,
+            ...styles.bannerInfo,
+          }}
+        >
           Importez <b>au moins 8 jours consécutifs</b> pour activer la détection
           d&apos;anomalie. Renseigner le <b>budget mensuel</b> active le suivi du
           rythme de dépense.
         </div>
       </div>
+
+      {message?.kind === "ok" && (
+        <div style={styles.section}>
+          <h2 style={styles.h2}>Étape suivante</h2>
+          <p style={styles.p}>
+            L&apos;import est terminé. Vous pouvez maintenant générer un rapport
+            et voir le compte client dans votre tableau de bord.
+          </p>
+          <a style={{ ...styles.btnLink, ...{ marginRight: 12 } }} href="/dashboard">
+            Retour au tableau de bord
+          </a>
+        </div>
+      )}
     </main>
   );
 }
