@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "seed:demo": "node scripts/seed-demo.mjs",
+    "emails:auth": "node scripts/render-auth-emails.mjs",
     "test": "node --test tests/",
     "doctor": "node scripts/doctor.mjs"
   },

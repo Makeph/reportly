@@ -34,6 +34,12 @@ npm run dev                  # http://localhost:3000
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (⚠️ serveur uniquement)
+6. Authentication → Emails → Templates : coller le contenu de
+   `supabase/templates/magic-link.html` et `confirm-signup.html`. Ces deux
+   emails sont envoyés par Supabase, pas par l'app : sans cette étape, le
+   premier message que reçoit un inscrit garde le gabarit par défaut.
+   Régénérer après un changement de charte avec `npm run emails:auth` — ils
+   partagent la coquille de `lib/email-theme.ts` avec les emails applicatifs.
 
 ### 2. Stripe
 1. Créer 3 produits récurrents mensuels : Starter 79 €, Growth 149 €, Pro 299 €.
