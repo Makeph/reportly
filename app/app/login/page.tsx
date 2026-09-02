@@ -83,7 +83,7 @@ export default function LoginPage() {
         .lg-form .input{margin:0}
         .lg-form .btn{width:100%;padding:15px 24px;font-size:12px}
         .lg-note{font-family:var(--mono);font-size:11px;letter-spacing:.04em;
-          color:var(--faint);text-align:center;margin:0}
+          line-height:1.75;color:var(--faint);text-align:center;margin:0}
 
         .lg-sent{margin-top:28px}
         .lg-sent h2{font-size:26px;margin:0}
@@ -126,8 +126,8 @@ export default function LoginPage() {
 
             <ul className="lg-checklist">
               <li>
-                Il arrive de <b>brief@getreportly.fr</b> — cherchez cet
-                expéditeur si vous ne le voyez pas.
+                Il arrive au nom de <b>Reportly</b> — cherchez ce mot dans votre
+                boîte si rien n&apos;apparaît.
               </li>
               <li>
                 Pensez aux spams et à l&apos;onglet Promotions : c&apos;est là
@@ -199,7 +199,10 @@ export default function LoginPage() {
             )}
 
             <p className="lg-note">
-              Aucun mot de passe à retenir, aucune carte bancaire.
+              Première visite ou retour : la même adresse suffit.
+              <br />
+              Votre espace s’ouvre au premier lien — sans mot de passe, sans
+              carte bancaire.
             </p>
           </form>
         )}

@@ -22,26 +22,31 @@ const outDir = join(appDir, "supabase", "templates");
 // Variables Go de Supabase — laissées telles quelles dans le HTML.
 const CONFIRMATION_URL = "{{ .ConfirmationURL }}";
 
+// Attention au partage des rôles : avec signInWithOtp, Supabase crée le compte
+// quand l'adresse est inconnue et envoie alors « Confirm signup ». C'est donc
+// confirm-signup.html — et non magic-link.html — que reçoit un nouvel inscrit.
 const templates = {
+  "confirm-signup.html": {
+    kicker: "Bienvenue",
+    title: "Votre espace Reportly vous attend",
+    preheader:
+      "Un clic ouvre votre espace et démarre l'essai. Aucun mot de passe, aucune carte.",
+    lines: [
+      "Ce lien ouvre votre espace et démarre vos 14 jours d'essai — sans mot de passe à choisir et sans carte bancaire.",
+      "Ensuite, une seule chose à faire : connecter une source, Meta Ads ou un export CSV. Le premier brief tombe le lendemain à 07:30, avec les urgences, les points de vigilance et les comptes sans anomalie.",
+      "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : sans clic, aucun compte n'est ouvert.",
+    ],
+    cta: { href: CONFIRMATION_URL, label: "Ouvrir mon espace" },
+  },
   "magic-link.html": {
     kicker: "Connexion",
     title: "Votre lien de connexion",
     preheader: "Un seul clic, aucun mot de passe. Le lien est à usage unique.",
     lines: [
-      "Cliquez sur le bouton ci-dessous pour ouvrir votre registre Reportly. Le lien est à usage unique et ne fonctionne que depuis cet e-mail.",
+      "Cliquez sur le bouton ci-dessous pour retrouver votre registre Reportly. Le lien est à usage unique et ne fonctionne que depuis cet e-mail.",
       "Si vous n'avez pas demandé cette connexion, ignorez ce message : sans clic, rien ne se passe.",
     ],
     cta: { href: CONFIRMATION_URL, label: "Ouvrir mon registre" },
-  },
-  "confirm-signup.html": {
-    kicker: "Bienvenue",
-    title: "Confirmez votre adresse",
-    preheader: "Une confirmation, et votre registre s'ouvre.",
-    lines: [
-      "Confirmez cette adresse pour ouvrir votre espace Reportly et démarrer vos 14 jours d'essai — sans carte bancaire.",
-      "Ensuite, une source connectée suffit : le premier brief tombe le lendemain à 07:30.",
-    ],
-    cta: { href: CONFIRMATION_URL, label: "Confirmer mon adresse" },
   },
 };
 

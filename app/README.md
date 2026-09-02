@@ -34,12 +34,20 @@ npm run dev                  # http://localhost:3000
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (⚠️ serveur uniquement)
-6. Authentication → Emails → Templates : coller le contenu de
-   `supabase/templates/magic-link.html` et `confirm-signup.html`. Ces deux
-   emails sont envoyés par Supabase, pas par l'app : sans cette étape, le
-   premier message que reçoit un inscrit garde le gabarit par défaut.
-   Régénérer après un changement de charte avec `npm run emails:auth` — ils
-   partagent la coquille de `lib/email-theme.ts` avec les emails applicatifs.
+6. Authentication → Emails → Templates : coller `supabase/templates/*.html`
+   dans les templates du même nom. Ces emails partent de Supabase, pas de
+   l'app : sans cette étape, le premier message que reçoit un inscrit garde le
+   gabarit par défaut. Régénérer après un changement de charte avec
+   `npm run emails:auth` — ils partagent la coquille de `lib/email-theme.ts`
+   avec les emails applicatifs.
+   ⚠️ **Confirm signup** est le template du *premier* email : `signInWithOtp`
+   crée le compte quand l'adresse est inconnue, et Supabase envoie alors
+   celui-là. **Magic link** ne sert qu'aux connexions suivantes.
+7. Project Settings → Authentication → SMTP Settings : brancher Resend
+   (`smtp.resend.com`, port 465, user `resend`, mot de passe = `RESEND_API_KEY`)
+   avec l'adresse d'envoi de votre domaine. Sans SMTP personnalisé, ces emails
+   partent d'un domaine Supabase — délivrabilité moindre, et un expéditeur
+   inconnu au moment précis où l'utilisateur attend le lien.
 
 ### 2. Stripe
 1. Créer 3 produits récurrents mensuels : Starter 79 €, Growth 149 €, Pro 299 €.
