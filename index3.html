@@ -815,7 +815,7 @@
           <li>Portail client (PDF inclus)</li>
           <li>Toutes les sources incluses</li>
         </ul>
-        <a class="btn second" href="mailto:hello@getreportly.fr?subject=Diagnostic%20Starter%20—%20Reportly&body=Bonjour%2C%20je%20veux%20voir%20si%20Reportly%20peut%20aider%20%C3%A0%20retenir%20mes%20clients." data-chat-trigger data-plan="Starter">Démarrer l'essai gratuit</a>
+        <a class="btn second" href="/login" data-chat-trigger data-plan="Starter">Démarrer l'essai gratuit</a>
       </div>
       <div class="plan hot reveal">
         <span class="tagtop">Le plus choisi</span>
@@ -908,7 +908,7 @@
         <a href="#rapport">Rapport du mois</a>
         <a href="#tarifs">Tarifs</a>
         <a href="#faq">FAQ</a>
-        <a href="mailto:hello@getreportly.fr" data-chat-trigger data-plan="contact">Contact</a>
+        <a href="/login" data-chat-trigger data-plan="contact">Contact</a>
       </div>
     </div>
     <p class="disc">Reportly — getreportly.fr. Le registre de décisions des agences SEO, Ads et Growth : brief du matin, suivi des actions, synthèse rédigée, priorité du mois, portail white-label. Données hébergées en Union européenne. Les chiffres affichés sont des données d'exemple.</p>
@@ -925,7 +925,7 @@
      Default baseUrl works for Chatwoot Cloud; replace it with your self-hosted URL if needed. */
   var CHATWOOT_WEBSITE_TOKEN = '';
   var CHATWOOT_BASE_URL = 'https://app.chatwoot.com';
-  var CHAT_FALLBACK = 'mailto:hello@getreportly.fr?subject=Diagnostic%20Reportly&body=Bonjour%2C%20je%20veux%20voir%20si%20Reportly%20peut%20aider%20%C3%A0%20retenir%20mes%20clients.';
+  var CHAT_FALLBACK = '/login';
 
   function chatFallback(plan){
     var suffix = plan && plan !== 'demo' && plan !== 'contact' ? '%20Plan%20:%20' + encodeURIComponent(plan) + '.' : '';
