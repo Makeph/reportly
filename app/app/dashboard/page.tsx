@@ -50,9 +50,9 @@ type AccountSummary = {
 
 const SEV_RANK: Record<string, number> = { red: 0, amber: 1, green: 2 };
 const SEV_COLOR: Record<string, string> = {
-  red: "#DC2626",
-  amber: "#F59E0B",
-  green: "#16A34A",
+  red: "#BC3A1D",
+  amber: "#9A6E15",
+  green: "#2F5D45",
 };
 
 function providerLabel(provider: string): string {
@@ -139,127 +139,140 @@ export default async function DashboardPage({
   );
 
   return (
-    <div className="wrap">
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h1>Tableau de bord</h1>
-        <div className="row">
-          <a className="btn sec" href="/dashboard/settings">
+    <div style={styles.container}>
+      <style>{`
+        :root {
+          --paper: #F5EFE2;
+          --paper-2: #FBF7EC;
+          --ink: #23261D;
+          --ink-2: #4C4A3C;
+          --faint: #8B8368;
+          --rule: #D9CEB2;
+          --rule-soft: #E6DEC8;
+          --red: #BC3A1D;
+          --amber: #9A6E15;
+          --green: #2F5D45;
+          --disp: 'Fraunces', Georgia, serif;
+          --body: 'Spectral', Georgia, serif;
+          --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+        }
+        body {
+          background: var(--paper);
+          color: var(--ink-2);
+          font-family: var(--body);
+        }
+      `}</style>
+
+      <div style={styles.masthead}>
+        <h1 style={styles.h1}>Tableau de bord</h1>
+        <div style={styles.headerButtons}>
+          <a style={styles.btnLink} href="/dashboard/settings">
             Réglages
           </a>
-          <form action={signOut}>
-            <button className="btn sec">Se déconnecter</button>
+          <form action={signOut} style={{ display: "inline" }}>
+            <button style={styles.btnLink}>Se déconnecter</button>
           </form>
         </div>
-      </header>
+      </div>
 
-      <p className="muted">
-        Connecté : <b>{user.email}</b>
-        {agency?.name ? ` · ${agency.name}` : ""}
-      </p>
+      <div style={styles.userInfo}>
+        <span style={styles.userEmail}>{user.email}</span>
+        {agency?.name && <span style={styles.divider}>·</span>}
+        {agency?.name && <span style={styles.agencyName}>{agency.name}</span>}
+      </div>
 
       {sp.connect === "meta_ok" && (
-        <div className="banner ok">
+        <div style={{ ...styles.banner, ...styles.bannerOk }}>
           Meta Ads connecté ✓ — audit initial terminé,{" "}
           <b>{sp.findings ?? "0"}</b> alerte(s) détectée(s).
         </div>
       )}
       {sp.connect === "meta_error" && (
-        <div className="banner err">
+        <div style={{ ...styles.banner, ...styles.bannerErr }}>
           La connexion Meta a échoué. Vérifiez l&apos;app Meta puis réessayez.
         </div>
       )}
       {sp.error === "subscription" && (
-        <div className="banner err">
+        <div style={{ ...styles.banner, ...styles.bannerErr }}>
           Votre essai ou abonnement n&apos;est plus actif. Choisissez un plan
           pour continuer.
         </div>
       )}
       {sp.error === "quota" && (
-        <div className="banner err">
+        <div style={{ ...styles.banner, ...styles.bannerErr }}>
           La connexion ajouterait plus de comptes clients que votre plan ne
           le permet. Passez à un plan supérieur puis réessayez.
         </div>
       )}
 
-      <div className="card" style={{ margin: "24px 0" }}>
-        <h2>Abonnement</h2>
-        <p>
+      <div style={styles.section}>
+        <h2 style={styles.h2}>Abonnement</h2>
+        <p style={styles.p}>
           Statut : <b>{ent.label}</b>
         </p>
         {!ent.active && (
-          <p style={{ color: "var(--amber-d)" }}>
+          <p style={{ ...styles.p, color: "var(--red)" }}>
             Votre essai est terminé — choisissez un plan pour continuer.
           </p>
         )}
         <PlanButtons />
-        <p className="muted" style={{ marginTop: 12 }}>
+        <p style={{ ...styles.muted, marginTop: 12 }}>
           14 jours d&apos;essai sans carte bancaire. Résiliable à tout moment.
         </p>
       </div>
 
-      <div className="card" style={{ marginBottom: 24 }}>
-        <h2>Sources</h2>
+      <div style={styles.section}>
+        <h2 style={styles.h2}>Sources</h2>
         {connections.length ? (
-          <div className="row" style={{ marginBottom: 12 }}>
+          <div style={styles.badges}>
             {connections.map((connection) => {
               const active = connection.status === "active";
               return (
                 <span
-                  className={`badge ${active ? "ok" : "warn"}`}
                   key={connection.id}
+                  style={{
+                    ...styles.badge,
+                    ...(active ? styles.badgeOk : styles.badgeWarn),
+                  }}
                 >
                   {providerLabel(connection.provider)} ·{" "}
-                  {active ? "active" : "à vérifier"}
+                  {active ? "actif" : "à vérifier"}
                 </span>
               );
             })}
           </div>
         ) : (
-          <p className="muted">
+          <p style={styles.muted}>
             Ajoutez votre première source pour lancer les détections et les
             rapports.
           </p>
         )}
-        <p className="muted">
+        <p style={styles.muted}>
           <b>{clientAccountCount}</b> / {Number.isFinite(clientAccountLimit)
             ? clientAccountLimit
             : "∞"}{" "}
           comptes clients
         </p>
-        <p className="muted">
+        <p style={styles.muted}>
           Connectez Meta Ads ou importez les exports de Matomo, TikTok Ads et
           vos régies locales.
         </p>
-        <div className="row">
+        <div style={styles.buttonGroup}>
           {sourcesDisabled ? (
             <>
-              <span
-                aria-disabled="true"
-                className="btn"
-                style={{ cursor: "not-allowed", opacity: 0.4 }}
-              >
+              <span style={{ ...styles.btn, opacity: 0.4, cursor: "not-allowed" }}>
                 Connecter Meta Ads
               </span>
-              <span
-                aria-disabled="true"
-                className="btn"
-                style={{ cursor: "not-allowed", opacity: 0.4 }}
-              >
+              <span style={{ ...styles.btn, opacity: 0.4, cursor: "not-allowed" }}>
                 Importer un fichier
               </span>
             </>
           ) : (
             <>
-              <a className="btn" href="/api/connect/meta/start">
+              <a style={styles.btn} href="/api/connect/meta/start">
                 Connecter Meta Ads
               </a>
-              <a className="btn" href="/dashboard/import">
+              <a style={styles.btn} href="/dashboard/import">
                 Importer un fichier
               </a>
             </>
@@ -268,38 +281,19 @@ export default async function DashboardPage({
       </div>
 
       {clientAccounts.length > 0 && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <h2>Rapports mensuels</h2>
-          <p className="muted">
+        <div style={styles.section}>
+          <h2 style={styles.h2}>Rapports mensuels</h2>
+          <p style={styles.muted}>
             Génère le rapport du mois dernier, puis partage le portail à vos
             couleurs avec le client.
           </p>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              marginTop: 8,
-            }}
-          >
+          <div style={styles.list}>
             {clientAccounts.map((a) => (
-              <div
-                key={a.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 12,
-                  border: "1px solid var(--line)",
-                  borderRadius: 12,
-                  padding: "12px 16px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div key={a.id} style={styles.listItem}>
                 <div>
-                  <b style={{ color: "var(--navy)" }}>{a.name}</b>
+                  <b style={styles.itemName}>{a.name}</b>
                   {summaryByAccount.has(a.id) && (
-                    <p className="muted" style={{ margin: "4px 0 0", fontSize: 13 }}>
+                    <p style={styles.itemMeta}>
                       30 jours :{" "}
                       {Math.round(summaryByAccount.get(a.id)?.conversions ?? 0).toLocaleString(
                         "fr-FR"
@@ -313,70 +307,47 @@ export default async function DashboardPage({
                     </p>
                   )}
                 </div>
-                <span className="row">
+                <div style={styles.buttonGroup}>
                   <GenerateReportButton accountId={a.id} />
                   <a
-                    className="btn sec"
+                    style={styles.btnSec}
                     href={`/portal/${a.id}?t=${makeShareToken(a.id, portalTokenVersion)}`}
                     target="_blank"
                     rel="noreferrer"
                   >
                     Voir le portail ↗
                   </a>
-                </span>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="card">
-        <h2>
+      <div style={styles.section}>
+        <h2 style={styles.h2}>
           Brief — {detections.length} alerte{detections.length > 1 ? "s" : ""}
         </h2>
         {detections.length === 0 ? (
-          <p className="muted">
+          <p style={styles.muted}>
             Aucune alerte ouverte.{" "}
             {connections.length
               ? "RAS sur vos comptes."
               : "Connectez une source pour démarrer."}
           </p>
         ) : (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-              marginTop: 8,
-            }}
-          >
+          <div style={styles.list}>
             {detections.map((d) => (
-              <div
-                key={d.id}
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  alignItems: "flex-start",
-                  border: "1px solid var(--line)",
-                  borderRadius: 12,
-                  padding: "14px 16px",
-                }}
-              >
+              <div key={d.id} style={styles.detection}>
                 <span
                   style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    marginTop: 6,
-                    flex: "0 0 auto",
-                    background: SEV_COLOR[d.severity] ?? "#7C8FA3",
+                    ...styles.detectionDot,
+                    background: SEV_COLOR[d.severity] ?? "var(--faint)",
                   }}
                 />
                 <div>
-                  <b style={{ color: "var(--navy)" }}>{d.title}</b>
-                  <p className="muted" style={{ margin: "4px 0 0" }}>
-                    {d.body}
-                  </p>
+                  <b style={styles.itemName}>{d.title}</b>
+                  <p style={styles.itemMeta}>{d.body}</p>
                 </div>
               </div>
             ))}
@@ -386,3 +357,216 @@ export default async function DashboardPage({
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    background: "var(--paper)",
+    color: "var(--ink-2)",
+    fontFamily: "var(--body)",
+    padding: "40px 28px",
+  } as React.CSSProperties,
+  masthead: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 16,
+    borderBottom: "1px solid var(--rule)",
+    paddingBottom: 18,
+    marginBottom: 24,
+    flexWrap: "wrap",
+  } as React.CSSProperties,
+  h1: {
+    fontFamily: "var(--disp)",
+    fontSize: "32px",
+    fontWeight: 600,
+    margin: 0,
+    color: "var(--ink)",
+  } as React.CSSProperties,
+  headerButtons: {
+    display: "flex",
+    gap: 8,
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+  } as React.CSSProperties,
+  btnLink: {
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase" as const,
+    color: "var(--ink-2)",
+    padding: "9px 12px",
+    borderBottom: "2px solid transparent",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    transition: "0.15s",
+  } as React.CSSProperties,
+  userInfo: {
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+    fontSize: "13px",
+    color: "var(--faint)",
+    marginBottom: 32,
+  } as React.CSSProperties,
+  userEmail: {
+    fontFamily: "var(--mono)",
+    fontWeight: 500,
+  } as React.CSSProperties,
+  divider: {
+    color: "var(--rule)",
+  } as React.CSSProperties,
+  agencyName: {
+    color: "var(--ink-2)",
+    fontWeight: 500,
+  } as React.CSSProperties,
+  banner: {
+    padding: "14px 16px",
+    borderRadius: "3px",
+    fontSize: "13px",
+    marginBottom: 20,
+    fontFamily: "var(--mono)",
+    letterSpacing: "0.05em",
+  } as React.CSSProperties,
+  bannerOk: {
+    background: "#DFE7DB",
+    color: "#2F5D45",
+    border: "1px solid #BBE5C8",
+  } as React.CSSProperties,
+  bannerErr: {
+    background: "#F1DDD1",
+    color: "#BC3A1D",
+    border: "1px solid #DCA489",
+  } as React.CSSProperties,
+  section: {
+    background: "var(--paper-2)",
+    border: "1.5px solid var(--rule)",
+    borderRadius: "3px",
+    padding: "28px",
+    marginBottom: 24,
+    boxShadow: "0 4px 12px -6px rgba(35, 38, 29, 0.12)",
+  } as React.CSSProperties,
+  h2: {
+    fontFamily: "var(--disp)",
+    fontSize: "21px",
+    fontWeight: 600,
+    margin: "0 0 14px",
+    color: "var(--ink)",
+  } as React.CSSProperties,
+  p: {
+    margin: "0 0 12px",
+    fontSize: "15px",
+    color: "var(--ink-2)",
+  } as React.CSSProperties,
+  muted: {
+    margin: "0 0 12px",
+    fontSize: "13px",
+    color: "var(--faint)",
+  } as React.CSSProperties,
+  badges: {
+    display: "flex",
+    gap: 8,
+    marginBottom: 16,
+    flexWrap: "wrap",
+  } as React.CSSProperties,
+  badge: {
+    fontFamily: "var(--mono)",
+    fontSize: "11px",
+    letterSpacing: "0.06em",
+    textTransform: "uppercase" as const,
+    padding: "6px 12px",
+    borderRadius: "3px",
+    border: "1px solid",
+  } as React.CSSProperties,
+  badgeOk: {
+    background: "#DFE7DB",
+    color: "#2F5D45",
+    borderColor: "#BBE5C8",
+  } as React.CSSProperties,
+  badgeWarn: {
+    background: "#EFE3C2",
+    color: "#9A6E15",
+    borderColor: "#DFCC8B",
+  } as React.CSSProperties,
+  buttonGroup: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  } as React.CSSProperties,
+  btn: {
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
+    padding: "12px 18px",
+    background: "var(--ink)",
+    color: "var(--paper)",
+    border: "1.5px solid var(--ink)",
+    borderRadius: "3px",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    textDecoration: "none",
+    display: "inline-flex",
+    alignItems: "center",
+    boxShadow: "2px 2px 0 rgba(35, 38, 29, 0.15)",
+  } as React.CSSProperties,
+  btnSec: {
+    fontFamily: "var(--mono)",
+    fontSize: "12px",
+    letterSpacing: "0.08em",
+    textTransform: "uppercase" as const,
+    padding: "12px 18px",
+    background: "var(--paper)",
+    color: "var(--ink)",
+    border: "1.5px solid var(--rule)",
+    borderRadius: "3px",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    textDecoration: "none",
+    display: "inline-flex",
+    alignItems: "center",
+  } as React.CSSProperties,
+  list: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 10,
+    marginTop: 8,
+  } as React.CSSProperties,
+  listItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    border: "1.5px solid var(--rule)",
+    borderRadius: "3px",
+    padding: "14px 16px",
+    flexWrap: "wrap" as const,
+  } as React.CSSProperties,
+  itemName: {
+    color: "var(--ink)",
+    fontSize: "14px",
+    fontWeight: 600,
+  } as React.CSSProperties,
+  itemMeta: {
+    margin: "6px 0 0",
+    fontSize: "12px",
+    color: "var(--faint)",
+    fontFamily: "var(--mono)",
+  } as React.CSSProperties,
+  detection: {
+    display: "flex",
+    gap: 12,
+    alignItems: "flex-start",
+    border: "1.5px solid var(--rule)",
+    borderRadius: "3px",
+    padding: "14px 16px",
+  } as React.CSSProperties,
+  detectionDot: {
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    marginTop: 6,
+    flex: "0 0 auto",
+  } as React.CSSProperties,
+};
