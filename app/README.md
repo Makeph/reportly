@@ -34,6 +34,20 @@ npm run dev                  # http://localhost:3000
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (⚠️ serveur uniquement)
+6. Authentication → Emails → Templates : coller `supabase/templates/*.html`
+   dans les templates du même nom. Ces emails partent de Supabase, pas de
+   l'app : sans cette étape, le premier message que reçoit un inscrit garde le
+   gabarit par défaut. Régénérer après un changement de charte avec
+   `npm run emails:auth` — ils partagent la coquille de `lib/email-theme.ts`
+   avec les emails applicatifs.
+   ⚠️ **Confirm signup** est le template du *premier* email : `signInWithOtp`
+   crée le compte quand l'adresse est inconnue, et Supabase envoie alors
+   celui-là. **Magic link** ne sert qu'aux connexions suivantes.
+7. Project Settings → Authentication → SMTP Settings : brancher Resend
+   (`smtp.resend.com`, port 465, user `resend`, mot de passe = `RESEND_API_KEY`)
+   avec l'adresse d'envoi de votre domaine. Sans SMTP personnalisé, ces emails
+   partent d'un domaine Supabase — délivrabilité moindre, et un expéditeur
+   inconnu au moment précis où l'utilisateur attend le lien.
 
 ### 2. Stripe
 1. Créer 3 produits récurrents mensuels : Starter 79 €, Growth 149 €, Pro 299 €.
@@ -55,6 +69,7 @@ Flux : `/api/connect/meta/start` (pose un state anti-CSRF) → dialog Meta → `
 
 ### 4. Brief quotidien
 1. **Resend** : créer une clé API → `RESEND_API_KEY` ; vérifier le domaine d'envoi → `BRIEF_FROM_EMAIL`.
+   Voir « DNS d'envoi » ci-dessous : la cohabitation avec le MX Plan OVH a un piège.
 2. `CRON_SECRET` = `openssl rand -hex 32`.
 3. **Vercel** : `vercel.json` planifie `/api/cron/daily` à **05:30 UTC** (≈ 07:30 Paris l'été ; en hiver CET = 06:30 — Vercel Cron est en UTC, ajuster si besoin). Vercel ajoute automatiquement `Authorization: Bearer <CRON_SECRET>`.
 4. **Test manuel** :
@@ -64,6 +79,38 @@ Flux : `/api/connect/meta/start` (pose un state anti-CSRF) → dialog Meta → `
 
 Le cron parcourt les agences à essai/abo actif → re-scan partagé (`lib/scan.ts`) avec **machine à états**
 (`lib/reconcile.ts` : new → persistent → improving → resolved) → email du brief (RAS inclus) → trace dans `brief`.
+
+#### DNS d'envoi — Resend à côté du MX Plan OVH
+
+Le domaine reçoit via **OVH MX Plan** (offre *redirect* : des redirections, pas de
+boîtes) et envoie via **Resend**. Les deux cohabitent sans conflit, à condition de
+ne pas « réparer » ce qui n'est pas cassé.
+
+| Enregistrement | Rôle |
+| --- | --- |
+| `getreportly.fr` MX → `mx*.mail.ovh.net` | réception OVH |
+| `getreportly.fr` TXT → `v=spf1 include:mx.ovh.com ~all` | SPF **OVH seul — à laisser tel quel** |
+| `resend._domainkey` TXT | signature DKIM Resend |
+| `send.getreportly.fr` TXT → `v=spf1 include:amazonses.com ~all` | SPF du Return-Path Resend |
+| `send.getreportly.fr` MX → `feedback-smtp.<région>.amazonses.com` | retour des bounces |
+
+⚠️ **Ne pas ajouter Resend au SPF de la racine.** SPF s'évalue sur le domaine
+d'enveloppe, que Resend place sur `send.` — déjà autorisé. L'alignement DMARC passe,
+lui, par DKIM (`d=getreportly.fr`, aligné avec le `From`). Ajouter un second
+enregistrement SPF le casserait (`PermError`), et modifier celui d'OVH menacerait les
+redirections.
+
+Deux points faciles à oublier :
+
+- **Le MX de bounce sur `send.`** doit exister, avec la région du compte Resend telle
+  qu'affichée dans Resend → Domains. Sans lui, les rejets ne reviennent jamais et la
+  réputation d'envoi se dégrade sans signal.
+- **Les adresses d'envoi doivent être redirigées côté OVH.** Le MX Plan n'a pas de
+  boîtes : sans redirection, une réponse d'un client à `brief@` — ou un rapport DMARC
+  envoyé à l'adresse du `rua` — n'arrive nulle part.
+
+`_dmarc` peut rester en `p=none` le temps de lire quelques semaines de rapports, puis
+passer à `p=quarantine`.
 
 ### 5. Rapport mensuel + portail
 1. **Anthropic** : `ANTHROPIC_API_KEY` ; `ANTHROPIC_MODEL` par défaut `claude-haiku-4-5-20251001`.

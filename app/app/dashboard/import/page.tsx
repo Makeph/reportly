@@ -5,6 +5,7 @@ import GenerateReportButton from "../report-buttons";
 
 type ImportResponse = {
   ok?: boolean;
+  accountId?: string;
   rows?: number;
   findings?: number;
   error?: string;
@@ -222,12 +223,9 @@ export default function CsvImportPage() {
           data.findings ?? 0
         } alerte(s) ouverte(s).${ignored}`,
       });
-      // Get the account ID from the form to enable generate button
-      const form = event.currentTarget;
-      const formData = new FormData(form);
-      // The API returns the account ID in the response, but we don’t have it here
-      // For now, we’ll just mark that import succeeded
-      setLastAccountId("just_imported");
+      // L'API renvoie l'identifiant du compte : il ouvre la génération du
+      // rapport sans repasser par le tableau de bord.
+      setLastAccountId(data.accountId ?? null);
     } catch {
       setMessage({
         kind: "err",
@@ -240,22 +238,6 @@ export default function CsvImportPage() {
 
   return (
     <main style={styles.container}>
-      <style>{`
-        :root {
-          --paper: #F5EFE2;
-          --paper-2: #FBF7EC;
-          --ink: #23261D;
-          --ink-2: #4C4A3C;
-          --faint: #8B8368;
-          --rule: #D9CEB2;
-          --red: #BC3A1D;
-          --green: #2F5D45;
-          --disp: ‘Fraunces’, Georgia, serif;
-          --body: ‘Spectral’, Georgia, serif;
-          --mono: ‘IBM Plex Mono’, ui-monospace, Consolas, monospace;
-        }
-      `}</style>
-
       <a style={styles.backLink} href="/dashboard">
         ← Retour au tableau de bord
       </a>
@@ -360,12 +342,17 @@ export default function CsvImportPage() {
         <div style={styles.section}>
           <h2 style={styles.h2}>Étape suivante</h2>
           <p style={styles.p}>
-            L&apos;import est terminé. Vous pouvez maintenant générer un rapport
-            et voir le compte client dans votre tableau de bord.
+            L&apos;import est terminé. Générez le rapport du mois dernier sans
+            quitter cette page, ou retrouvez le compte dans votre registre.
           </p>
-          <a style={{ ...styles.btnLink, ...{ marginRight: 12 } }} href="/dashboard">
-            Retour au tableau de bord
-          </a>
+          <div
+            style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}
+          >
+            {lastAccountId && <GenerateReportButton accountId={lastAccountId} />}
+            <a style={styles.btnLink} href="/dashboard">
+              Retour au registre
+            </a>
+          </div>
         </div>
       )}
     </main>

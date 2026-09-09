@@ -240,25 +240,54 @@ Réponds avec ce JSON exact:
   type Out = { synthesis: string[]; highlights: string[]; priority: string };
   const ai = await claudeJson<Out>({ system, user, maxTokens: 900 });
 
+  // Ce repli sert quand l'IA ne répond pas — et il part tel quel au client
+  // final. Il doit donc se lire comme de la prose française : nombres au
+  // format fr-FR, mois en minuscule dans la phrase, pas de « (s) ».
+  const nf = new Intl.NumberFormat("fr-FR");
+  const nf2 = new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const s = (n: number) => (n > 1 ? "s" : "");
+  const periodInline = formatPeriodFr(period).toLowerCase();
+
   const fallback: Out = {
     synthesis: [
-      `Sur ${formatPeriodFr(period)}, la dépense s'élève à ${Math.round(metrics.spend)} ${currency}${
+      `Sur ${periodInline}, la dépense s'élève à ${nf.format(
+        Math.round(metrics.spend)
+      )} ${currency}${
         deltaPct !== null
-          ? ` (${deltaPct >= 0 ? "+" : ""}${deltaPct} % vs mois précédent)`
+          ? `, ${deltaPct >= 0 ? "en hausse" : "en baisse"} de ${Math.abs(
+              deltaPct
+            )} % sur le mois précédent`
           : ""
       }.`,
       conversions !== null
-        ? `Les campagnes totalisent ${Math.round(conversions)} conversion(s)${
-            cpa !== null ? `, avec un CPA moyen de ${Math.round(cpa)} ${currency}` : ""
-          }${roas !== null ? ` et un ROAS de ${Math.round(roas * 100) / 100}` : ""}.`
+        ? `Les campagnes totalisent ${nf.format(
+            Math.round(conversions)
+          )} conversion${s(conversions)}${
+            cpa !== null
+              ? `, pour un CPA moyen de ${nf2.format(cpa)} ${currency}`
+              : ""
+          }${roas !== null ? ` et un ROAS de ${nf2.format(roas)}` : ""}.`
         : "Les données de conversion ne sont pas encore disponibles sur ce rapport.",
-      `${incidentsDetected} incident(s) détecté(s), ${incidentsResolved} corrigé(s) au cours du mois.`,
+      incidentsDetected === 0
+        ? "Aucun incident n'a été relevé au cours du mois."
+        : `${nf.format(incidentsDetected)} incident${s(
+            incidentsDetected
+          )} relevé${s(incidentsDetected)} au cours du mois, ${
+            incidentsResolved === 0
+              ? "aucun corrigé à ce jour"
+              : `${nf.format(incidentsResolved)} corrigé${s(incidentsResolved)}`
+          }.`,
     ],
     highlights: [],
     priority:
-      incidentsDetected > 0
-        ? "Traiter en priorité les comptes ayant déclenché une alerte ce mois-ci."
-        : "Maintenir la surveillance — aucun incident majeur ce mois-ci.",
+      incidentsDetected > incidentsResolved
+        ? "Reprendre les incidents restés ouverts avant d'engager de nouvelles optimisations."
+        : incidentsDetected > 0
+          ? "Vérifier que les correctifs du mois tiennent avant d'augmenter les budgets."
+          : "Maintenir la surveillance : aucun incident relevé ce mois-ci.",
   };
   const out = ai ?? fallback;
 
