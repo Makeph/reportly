@@ -22,7 +22,7 @@ export default function PlanButtons() {
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) window.location.assign(data.url);
       else setError(data.error ?? "Le paiement n’a pas pu s’ouvrir.");
     } catch {
       setError("Le paiement n’a pas pu s’ouvrir. Vérifiez votre connexion.");

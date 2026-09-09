@@ -188,7 +188,6 @@ export default async function PortalReportPage({
       <header className="rp-head">
         <div className="rp-brand">
           {brand.logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={brand.logo}
               alt={agencyName}
@@ -222,7 +221,8 @@ export default async function PortalReportPage({
             className={`stamp rp-seal ${allResolved ? "green" : "amber"}`}
             style={{ "--tilt": "4deg" } as React.CSSProperties}
           >
-            {resolved}/{detected} corrigé{resolved > 1 ? "s" : ""}
+            {/* Accord sur « incident », donc sur le nombre détecté. */}
+            {resolved}/{detected} corrigé{detected > 1 ? "s" : ""}
           </span>
         )}
 

@@ -80,7 +80,6 @@ export default async function PortalListPage({
 
       <header className="pl-head">
         {brand.logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={brand.logo}
             alt={agencyName}
@@ -116,10 +115,11 @@ export default async function PortalListPage({
               <span>
                 <span className="pl-period">{formatPeriodFr(r.period)}</span>
                 <span className="pl-meta">
+                  {/* Le participe s'accorde avec « incident », donc sur le
+                      nombre détecté — pas sur le nombre corrigé. */}
                   {r.kpis?.incidentsResolved ?? 0}/
                   {r.kpis?.incidentsDetected ?? 0} incident
-                  {(r.kpis?.incidentsDetected ?? 0) > 1 ? "s" : ""} corrigé
-                  {(r.kpis?.incidentsResolved ?? 0) > 1 ? "s" : ""}
+                  {(r.kpis?.incidentsDetected ?? 0) > 1 ? "s corrigés" : " corrigé"}
                 </span>
               </span>
               <span className="pl-go">
