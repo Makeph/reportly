@@ -38,6 +38,16 @@ type LifecycleEmailInput = {
   text?: string;
 };
 
+// Un seul endroit pour l'expéditeur : la valeur réelle vit dans
+// BRIEF_FROM_EMAIL, ce repli ne sert qu'aux environnements qui l'oublient.
+// Le nom d'affichage compte — sans lui, la boîte de réception montre
+// l'adresse brute au lieu de « Reportly ».
+const DEFAULT_FROM = "Reportly <no-reply@getreportly.fr>";
+
+function sender(): string {
+  return process.env.BRIEF_FROM_EMAIL || DEFAULT_FROM;
+}
+
 function severityColor(sev: string): string {
   return sev === "red" ? RED : sev === "amber" ? AMBER : GREEN;
 }
@@ -144,7 +154,7 @@ async function postToResend(payload: {
 export async function sendBriefEmail(input: BriefEmailInput): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return false;
-  const from = process.env.BRIEF_FROM_EMAIL || "Reportly <brief@getreportly.fr>";
+  const from = sender();
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
   const { html, text } = renderBrief(input, `${siteUrl}/dashboard`);
@@ -168,7 +178,7 @@ export async function sendLifecycleEmail(
     console.log("[lifecycle-email] RESEND_API_KEY absente, envoi ignoré.");
     return false;
   }
-  const from = process.env.BRIEF_FROM_EMAIL || "Reportly <brief@getreportly.fr>";
+  const from = sender();
 
   try {
     const res = await postToResend({
