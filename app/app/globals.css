@@ -1,40 +1,68 @@
-/* Design system « DocuForge » — bleu/violet/gris, Plus Jakarta Sans + Inter + Fira Code.
-   Les noms de variables historiques (--navy, --body, --ter…) sont conservés :
-   seules les valeurs changent, les styles inline existants restent valides. */
+/* Design system « registre » — papier, encre, tampons, réglure.
+   Aligné sur la page d'accueil (index4) : Fraunces + Spectral + IBM Plex Mono.
+   Les noms de classes et de variables historiques sont conservés : seules les
+   valeurs changent, pour que le portail et les réglages suivent sans réécriture. */
 :root {
-  --bg: #fafafa;
-  --white: #ffffff;
-  --navy: #18181b;      /* titres */
-  --body: #3f3f46;      /* texte courant */
-  --ter: #71717a;       /* secondaire / métadonnées */
-  --blue: #2563eb;      /* primaire — liens, CTA */
-  --blue-d: #1d4ed8;
-  --blue-t: #eff6ff;
-  --purple: #7c3aed;    /* accents, badges */
-  --line: #e4e4e7;
-  --green: #16a34a;
-  --amber-d: #ca8a04;
-  --red: #dc2626;
-  --sh-s: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --sh-m: 0 4px 12px rgba(0, 0, 0, 0.06);
-  --font-head: var(--font-jakarta), "Plus Jakarta Sans", sans-serif;
-  --font-text: var(--font-inter), "Inter", -apple-system, "Segoe UI", sans-serif;
-  --font-code: var(--font-fira), "Fira Code", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+
+  /* papier & encre */
+  --paper: #f5efe2;
+  --paper-2: #fbf7ec;
+  --paper-3: #ede4cf;
+  --ink: #23261d;
+  --ink-2: #4c4a3c;
+  --faint: #8b8368;
+  --rule: #d9ceb2;
+  --rule-soft: #e6dec8;
+
+  /* sémantique — jamais décoratif */
+  --red: #bc3a1d;
+  --red-t: #f1ddd1;
+  --red-line: #dca489;
+  --green: #2f5d45;
+  --green-t: #dfe7db;
+  --green-line: #bbd3c0;
+  --amber: #9a6e15;
+  --amber-t: #efe3c2;
+  --amber-line: #dcc48a;
+
+  /* familles — --body et --disp portent la police, comme sur la page d'accueil */
+  --disp: var(--font-disp), Georgia, serif;
+  --body: var(--font-body), Georgia, serif;
+  --mono: var(--font-mono), ui-monospace, Consolas, monospace;
+
+  /* alias historiques (portail, réglages) remappés sur la palette registre */
+  --bg: var(--paper);
+  --white: var(--paper-2);
+  --navy: var(--ink);
+  --ter: var(--faint);
+  --line: var(--rule);
+  --blue: var(--red);
+  --blue-d: #9c2f16;
+  --blue-t: var(--red-t);
+  --purple: var(--amber);
+  --amber-d: var(--amber);
+  --sh-s: 0 4px 12px -8px rgba(35, 38, 29, 0.3);
+  --sh-m: 0 18px 40px -28px rgba(35, 38, 29, 0.45);
+  --font-head: var(--disp);
+  --font-text: var(--body);
+  --font-code: var(--mono);
 }
+
 * {
   box-sizing: border-box;
 }
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--body);
-  font-family: var(--font-text);
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: var(--body);
   font-size: 16px;
-  line-height: 1.7;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 a {
-  color: var(--blue);
+  color: var(--red);
   text-decoration: none;
 }
 a:hover {
@@ -42,110 +70,212 @@ a:hover {
   text-underline-offset: 3px;
 }
 ::selection {
-  background: var(--blue-t);
-  color: var(--navy);
+  background: var(--ink);
+  color: var(--paper);
 }
 h1,
 h2,
-h3 {
-  font-family: var(--font-head);
-  color: var(--navy);
-  letter-spacing: 0.01em;
-  line-height: 1.2;
+h3,
+h4 {
+  font-family: var(--disp);
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 h1 {
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 32px;
 }
 h2 {
   font-size: 22px;
-  font-weight: 600;
 }
-h1 .dot {
-  color: var(--blue);
+h1 .dot,
+h1 em {
+  color: var(--red);
 }
 :focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+/* grain papier — la texture qui porte toute la direction */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.32;
+  transform: translateZ(0);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .wrap {
-  max-width: 880px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 32px 24px 64px;
+  padding: 0 28px 88px;
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 720px) {
+  .wrap {
+    padding: 0 18px 56px;
+  }
 }
 
 .card {
-  background: var(--white);
-  border: 1px solid #f4f4f5;
-  border-radius: 8px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
   padding: 24px;
   box-shadow: var(--sh-s);
-  transition: box-shadow 0.15s ease;
-}
-.card:hover {
-  box-shadow: var(--sh-m);
 }
 .card.auth {
-  max-width: 420px;
+  max-width: 440px;
   margin: 12vh auto;
   padding: 32px;
-  border-radius: 16px;
 }
 
 .input {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--rule);
+  border-radius: 3px;
   margin: 10px 0;
   font: inherit;
-  font-size: 14px;
-  color: var(--navy);
-  background: var(--white);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .input:hover {
-  border-color: #d4d4d8;
+  border-color: var(--ink-2);
 }
 .input:focus {
   outline: none;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 1px var(--blue);
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 rgba(35, 38, 29, 0.12);
 }
 
+/* ---------- boutons : l'ombre dit la priorité ---------- */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: var(--blue);
-  color: #fff;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font: inherit;
-  font-size: 14px;
+  gap: 9px;
+  font-family: var(--mono);
+  font-size: 11.5px;
   font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 12px 18px;
+  border-radius: 3px;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: 3px 3px 0 rgba(35, 38, 29, 0.22);
+  transition: transform 0.15s, box-shadow 0.2s, background 0.15s, color 0.15s,
+    border-color 0.15s;
 }
 .btn:hover {
-  background: var(--blue-d);
   text-decoration: none;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 rgba(188, 58, 29, 0.5);
 }
-.btn:disabled {
-  opacity: 0.4;
+.btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 rgba(35, 38, 29, 0.22);
+}
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.38;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: 3px 3px 0 rgba(35, 38, 29, 0.1);
 }
+.btn .arr {
+  transition: transform 0.2s;
+}
+.btn:hover .arr {
+  transform: translateX(4px);
+}
+
+/* priorité 2 — même geste, une octave plus bas */
 .btn.sec {
-  background: var(--white);
-  color: var(--blue);
-  border-color: var(--blue);
+  background: var(--paper-2);
+  color: var(--ink);
+  border-color: var(--rule);
+  box-shadow: 2px 2px 0 rgba(35, 38, 29, 0.1);
 }
 .btn.sec:hover {
-  background: var(--blue-t);
+  border-color: var(--ink);
+  box-shadow: 4px 4px 0 rgba(188, 58, 29, 0.22);
+}
+.btn.sec:active {
+  box-shadow: 1px 1px 0 rgba(35, 38, 29, 0.12);
+}
+
+/* priorité 3 — sans ombre : ne réclame rien */
+.btn.quiet {
+  background: transparent;
+  color: var(--ink-2);
+  border-color: transparent;
+  box-shadow: none;
+  padding: 12px 12px;
+}
+.btn.quiet:hover {
+  color: var(--ink);
+  background: var(--paper-2);
+  border-color: var(--rule);
+  transform: none;
+  box-shadow: none;
+}
+.btn.sm {
+  padding: 9px 14px;
+  font-size: 10.5px;
+}
+
+/* ---------- tampon ---------- */
+.stamp {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--red);
+  border: 2px solid var(--red);
+  border-radius: 3px;
+  padding: 5px 11px;
+  opacity: 0.92;
+  white-space: nowrap;
+  transform: rotate(var(--tilt, -3deg));
+  box-shadow: inset 0 0 0 1px rgba(188, 58, 29, 0.25);
+  animation: stamp-in 0.3s cubic-bezier(0.2, 1.6, 0.35, 1) both;
+}
+.stamp.green {
+  color: var(--green);
+  border-color: var(--green);
+  box-shadow: inset 0 0 0 1px rgba(47, 93, 69, 0.25);
+}
+.stamp.amber {
+  color: var(--amber);
+  border-color: var(--amber);
+  box-shadow: inset 0 0 0 1px rgba(154, 110, 21, 0.25);
+}
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: scale(1.7) rotate(-14deg);
+  }
+  to {
+    opacity: 0.92;
+    transform: scale(1) rotate(var(--tilt, -3deg));
+  }
 }
 
 .row {
@@ -156,55 +286,67 @@ h1 .dot {
 }
 
 .muted {
-  color: var(--ter);
+  color: var(--faint);
   font-size: 14px;
   line-height: 1.6;
 }
 
-/* badge façon « method chip » — Fira Code, pour états et étiquettes */
+/* badge — étiquette d'état, en mono */
 .badge {
   display: inline-block;
-  font-family: var(--font-code);
-  font-size: 12px;
-  font-weight: 500;
-  border-radius: 4px;
-  padding: 2px 8px;
-  background: #f4f4f5;
-  color: var(--body);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  padding: 4px 9px;
+  background: var(--paper-3);
+  color: var(--ink-2);
 }
 .badge.ok {
-  background: #f0fdf4;
+  background: var(--green-t);
   color: var(--green);
 }
 .badge.warn {
-  background: #fff7ed;
-  color: var(--amber-d);
+  background: var(--amber-t);
+  color: var(--amber);
 }
 .badge.err {
-  background: #fef2f2;
+  background: var(--red-t);
   color: var(--red);
 }
 .badge.info {
-  background: var(--blue-t);
-  color: var(--blue);
+  background: var(--paper-3);
+  color: var(--ink-2);
 }
 
 .banner {
-  border-radius: 12px;
-  padding: 12px 16px;
+  border-radius: 3px;
+  padding: 13px 16px;
   margin: 16px 0 0;
   font-size: 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
 }
 .banner.ok {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-  color: #14532d;
+  background: var(--green-t);
+  border-color: var(--green-line);
+  color: var(--green);
 }
 .banner.err {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #991b1b;
+  background: var(--red-t);
+  border-color: var(--red-line);
+  color: var(--red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media print {
@@ -213,6 +355,9 @@ h1 .dot {
   }
   body {
     background: #fff;
+  }
+  body::after {
+    display: none;
   }
   .card {
     box-shadow: none;

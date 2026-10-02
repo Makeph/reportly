@@ -1,6 +1,12 @@
-type EmailTemplate = {
+// Emails de cycle de vie — onboarding, fin d'essai, premier rapport.
+// La charte et la coquille vivent dans email-theme.ts.
+
+import { button, paragraph, plainText, shell } from "./email-theme.ts";
+
+export type EmailTemplate = {
   subject: string;
   html: string;
+  text: string;
 };
 
 type OnboardingConnectSourceInput = {
@@ -20,67 +26,31 @@ type FirstReportReadyInput = {
   portalUrl: string;
 };
 
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function renderEmail({
+function compose({
+  subject,
+  kicker,
   title,
-  intro,
-  paragraphs,
+  preheader,
+  lines,
   cta,
 }: {
+  subject: string;
+  kicker: string;
   title: string;
-  intro: string;
-  paragraphs: string[];
+  preheader: string;
+  lines: string[];
   cta?: { href: string; label: string };
-}): string {
-  const body = paragraphs
-    .map(
-      (p) =>
-        `<p style="margin:0 0 16px;color:#3F3F46;font-size:15px;line-height:1.55">${escapeHtml(
-          p
-        )}</p>`
-    )
-    .join("");
-  const button = cta
-    ? `<tr><td style="padding-top:8px"><a href="${escapeHtml(
-        cta.href
-      )}" style="display:inline-block;background:#2563EB;color:#FFFFFF;text-decoration:none;font-size:14px;font-weight:600;line-height:1;padding:14px 18px;border-radius:8px">${escapeHtml(
-        cta.label
-      )}</a></td></tr>`
-    : "";
-
-  return `<!doctype html>
-<html>
-  <body style="margin:0;padding:0;background:#FAFAFA;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FAFAFA;border-collapse:collapse">
-      <tr>
-        <td align="center" style="padding:32px 16px">
-          <table role="presentation" width="560" cellspacing="0" cellpadding="0" style="width:100%;max-width:560px;background:#FFFFFF;border-collapse:separate;border-spacing:0;border-radius:8px">
-            <tr>
-              <td style="padding:32px">
-                <h1 style="margin:0 0 12px;color:#18181B;font-size:22px;line-height:1.25;font-weight:700">${escapeHtml(
-                  title
-                )}</h1>
-                <p style="margin:0 0 20px;color:#3F3F46;font-size:15px;line-height:1.55">${escapeHtml(
-                  intro
-                )}</p>
-                ${body}
-                <table role="presentation" cellspacing="0" cellpadding="0" style="border-collapse:collapse">${button}</table>
-                <p style="margin:28px 0 0;color:#71717A;font-size:12px;line-height:1.5">Reportly</p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
+}): EmailTemplate {
+  return {
+    subject,
+    html: shell({
+      kicker,
+      title,
+      preheader,
+      bodyHtml: lines.map(paragraph).join("") + (cta ? button(cta) : ""),
+    }),
+    text: plainText({ kicker, title, lines, cta }),
+  };
 }
 
 export function onboardingConnectSource({
@@ -88,21 +58,19 @@ export function onboardingConnectSource({
   dashboardUrl,
 }: OnboardingConnectSourceInput): EmailTemplate {
   const name = agencyName || "votre agence";
-  return {
-    subject: "Connectez votre première source",
-    html: renderEmail({
-      title: "Votre premier brief tombe demain à 07:30",
-      intro: `${name}, il reste une étape pour lancer Reportly : connecter une première source de données.`,
-      paragraphs: [
-        "Une fois la source connectée, Reportly commence à surveiller vos comptes et prépare le brief quotidien pour votre équipe.",
-        "Le premier brief arrive demain à 07:30. Il vous donne les urgences, les points de vigilance et les comptes sans anomalie.",
-      ],
-      cta: {
-        href: dashboardUrl,
-        label: "Connecter une source",
-      },
-    }),
-  };
+  return compose({
+    subject: "Il manque une source pour ouvrir votre registre",
+    kicker: "Première étape",
+    title: "Votre premier brief tombe demain à 07:30",
+    preheader:
+      "Une source connectée suffit pour lancer la surveillance de vos comptes.",
+    lines: [
+      `${name}, il reste une étape avant que Reportly commence à tenir votre registre : connecter une première source.`,
+      "Connectez Meta Ads pour une synchronisation automatique, ou déposez un export CSV — huit jours consécutifs suffisent pour armer la détection.",
+      "Dès le lendemain, le brief de 07:30 vous donne les urgences, les points de vigilance et les comptes sans anomalie.",
+    ],
+    cta: { href: dashboardUrl, label: "Connecter une source" },
+  });
 }
 
 export function trialEndsSoon({
@@ -111,18 +79,20 @@ export function trialEndsSoon({
   upgradeUrl,
 }: TrialEndsSoonInput): EmailTemplate {
   const plural = daysLeft > 1 ? "s" : "";
-  return {
+  const name = agencyName || "Votre agence";
+  return compose({
     subject: `Votre essai Reportly se termine dans ${daysLeft} jour${plural}`,
-    html: renderEmail({
-      title: `Votre essai se termine dans ${daysLeft} jour${plural}`,
-      intro: `${agencyName || "Votre agence"} arrive à la fin de son essai Reportly.`,
-      paragraphs: [
-        "Depuis le dashboard, vous gardez le registre des incidents, le brief quotidien à 07:30 et les rapports mensuels white-label pour vos clients.",
-        "Passez sur un plan actif pour conserver l'historique, continuer les briefs et publier les prochains rapports sans interruption.",
-      ],
-      cta: { href: upgradeUrl, label: "Choisir un plan" },
-    }),
-  };
+    kicker: `Essai · ${daysLeft} jour${plural}`,
+    title: `Votre essai se termine dans ${daysLeft} jour${plural}`,
+    preheader:
+      "Conservez le registre, le brief quotidien et les portails clients.",
+    lines: [
+      `${name} arrive au terme de son essai Reportly.`,
+      "Votre registre garde la trace de chaque incident détecté et corrigé : c'est cette continuité qui fait la valeur du rapport mensuel remis à vos clients.",
+      "Choisissez un plan pour conserver l'historique, poursuivre les briefs de 07:30 et publier les prochains rapports sans interruption.",
+    ],
+    cta: { href: upgradeUrl, label: "Choisir un plan" },
+  });
 }
 
 export function firstReportReady({
@@ -130,16 +100,17 @@ export function firstReportReady({
   accountName,
   portalUrl,
 }: FirstReportReadyInput): EmailTemplate {
-  return {
+  const name = agencyName || "Votre agence";
+  return compose({
     subject: `Premier rapport prêt — ${accountName}`,
-    html: renderEmail({
-      title: "Votre premier rapport mensuel est prêt",
-      intro: `${agencyName || "Votre agence"}, le premier rapport mensuel de ${accountName} est publié dans le portail client.`,
-      paragraphs: [
-        "Le rapport reprend les indicateurs du mois, la synthèse, les faits marquants et la priorité recommandée.",
-        "Le lien est signé et peut être partagé avec votre client pour consulter le portail white-label.",
-      ],
-      cta: { href: portalUrl, label: "Ouvrir le rapport" },
-    }),
-  };
+    kicker: "Rapport publié",
+    title: "Votre premier rapport mensuel est prêt",
+    preheader: `${accountName} · synthèse, faits marquants et priorité du mois.`,
+    lines: [
+      `${name}, le rapport mensuel de ${accountName} est publié dans le portail client.`,
+      "Il reprend les indicateurs du mois face au précédent, la synthèse rédigée, les faits marquants et la priorité recommandée.",
+      "Relisez-le avant de transmettre le lien : il est signé, à vos couleurs, et ne demande aucun compte à votre client.",
+    ],
+    cta: { href: portalUrl, label: "Ouvrir le rapport" },
+  });
 }

@@ -7,6 +7,7 @@ import { sendLifecycleEmail } from "@/lib/email";
 import {
   onboardingConnectSource,
   trialEndsSoon,
+  type EmailTemplate,
 } from "@/lib/lifecycle-emails";
 
 type DailyAgencyRow = {
@@ -54,7 +55,7 @@ async function sendLifecycleEmailOnce(
   admin: ReturnType<typeof createAdminClient>,
   agencyId: string,
   kind: LifecycleEventKind,
-  message: { subject: string; html: string },
+  message: EmailTemplate,
   email: string
 ) {
   const { data: existingEvent, error: selectError } = await admin

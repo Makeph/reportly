@@ -2,35 +2,13 @@
 
 import { useState } from "react";
 
-const btnStyle = {
-  fontFamily: "var(--mono)",
-  fontSize: "12px",
-  letterSpacing: "0.08em",
-  textTransform: "uppercase" as const,
-  padding: "12px 18px",
-  background: "var(--paper)",
-  color: "var(--ink)",
-  border: "1.5px solid var(--rule)",
-  borderRadius: "3px",
-  cursor: "pointer",
-  transition: "all 0.15s",
-  fontWeight: 600,
-} as React.CSSProperties;
-
-const msgStyle = {
-  fontSize: "12px",
-  color: "var(--green)",
-  fontFamily: "var(--mono)",
-  marginLeft: 8,
-} as React.CSSProperties;
-
 export default function GenerateReportButton({
   accountId,
 }: {
   accountId: string;
 }) {
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   async function generate() {
     setLoading(true);
@@ -42,20 +20,39 @@ export default function GenerateReportButton({
         body: JSON.stringify({ accountId }),
       });
       const data = await res.json();
-      setMsg(res.ok ? "Rapport généré ✓" : data.error ?? "Erreur");
+      setMsg(
+        res.ok
+          ? { ok: true, text: "Rapport généré" }
+          : { ok: false, text: data.error ?? "La génération a échoué." }
+      );
     } catch {
-      setMsg("Erreur réseau");
+      setMsg({
+        ok: false,
+        text: "La génération a échoué. Vérifiez votre connexion.",
+      });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <button style={btnStyle} disabled={loading} onClick={generate}>
-        {loading ? "Génération…" : "Générer (mois dernier)"}
+    <span className="row" style={{ gap: 8 }}>
+      <button className="btn sm" disabled={loading} onClick={generate}>
+        {loading ? "Génération…" : "Générer"}
+        {!loading && <span className="arr">→</span>}
       </button>
-      {msg && <span style={msgStyle}>{msg}</span>}
-    </div>
+      {msg && (
+        <span
+          className="badge"
+          style={{
+            color: msg.ok ? "var(--green)" : "var(--red)",
+            background: msg.ok ? "var(--green-t)" : "var(--red-t)",
+          }}
+          aria-live="polite"
+        >
+          {msg.text}
+        </span>
+      )}
+    </span>
   );
 }
