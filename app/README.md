@@ -34,20 +34,48 @@ npm run dev                  # http://localhost:3000
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (⚠️ serveur uniquement)
-6. Authentication → Emails → Templates : coller `supabase/templates/*.html`
-   dans les templates du même nom. Ces emails partent de Supabase, pas de
+6. **Project Settings → Authentication → SMTP Settings** — à faire **avant** les
+   gabarits : tant que le SMTP personnalisé n'est pas enregistré, Supabase
+   refuse d'éditer les templates (« Set up custom SMTP to edit templates »).
+   C'est aussi lui qui lève le plafond d'envoi : sans SMTP propre, les emails
+   d'authentification sont limités à quelques envois par heure pour tout le
+   projet, et une inscription se heurte au mur — la page de connexion affiche
+   alors « Trop de demandes coup sur coup », message exact mais qui désigne la
+   mauvaise cause.
+
+   | Champ | Valeur |
+   | --- | --- |
+   | Host | `smtp.resend.com` |
+   | Port | `465` |
+   | Username | `resend` |
+   | Password | la `RESEND_API_KEY` (celle qui commence par `re_`, **pas** `sk-ant`) |
+   | Sender email | l'adresse de `BRIEF_FROM_EMAIL`, ici `no-reply@getreportly.fr` |
+   | Sender name | `Reportly` |
+
+   ⚠️ Après **Save changes**, **rechargez la page** : c'est le seul test fiable.
+   Un enregistrement refusé laisse le formulaire rempli à l'écran mais le
+   commutateur revient à *off* au rechargement, et rien n'a été persisté.
+7. **Authentication → Emails → Templates** : coller `supabase/templates/*.html`
+   dans les templates du même nom, et renseigner le sujet au-dessus du corps
+   (il ne fait pas partie du fichier). Ces emails partent de Supabase, pas de
    l'app : sans cette étape, le premier message que reçoit un inscrit garde le
    gabarit par défaut. Régénérer après un changement de charte avec
    `npm run emails:auth` — ils partagent la coquille de `lib/email-theme.ts`
    avec les emails applicatifs.
-   ⚠️ **Confirm signup** est le template du *premier* email : `signInWithOtp`
+
+   | Template | Fichier | Sujet |
+   | --- | --- | --- |
+   | Confirm sign up | `confirm-signup.html` | Votre espace Reportly vous attend |
+   | Magic link or OTP | `magic-link.html` | Votre lien de connexion Reportly |
+
+   ⚠️ **Confirm sign up** est le template du *premier* email : `signInWithOtp`
    crée le compte quand l'adresse est inconnue, et Supabase envoie alors
    celui-là. **Magic link** ne sert qu'aux connexions suivantes.
-7. Project Settings → Authentication → SMTP Settings : brancher Resend
-   (`smtp.resend.com`, port 465, user `resend`, mot de passe = `RESEND_API_KEY`)
-   avec l'adresse d'envoi de votre domaine. Sans SMTP personnalisé, ces emails
-   partent d'un domaine Supabase — délivrabilité moindre, et un expéditeur
-   inconnu au moment précis où l'utilisateur attend le lien.
+
+   L'éditeur est Monaco : un collage au clavier se fait corrompre par
+   l'auto-fermeture des balises. Collez d'un bloc, puis rechargez la page et
+   comparez la taille du contenu au fichier source avant de considérer que
+   c'est passé.
 
 ### 2. Stripe
 1. Créer 3 produits récurrents mensuels : Starter 79 €, Growth 149 €, Pro 299 €.

@@ -44,7 +44,7 @@ export async function runDailyBrief(agencyId: string): Promise<DailyBriefResult>
     .select("name")
     .eq("id", agencyId)
     .maybeSingle<{ name: string | null }>();
-  const agencyName = agencyRow?.name || "votre agence";
+  const agencyName = agencyRow?.name || "Votre agence";
 
   const { data: member } = await admin
     .from("agency_member")
