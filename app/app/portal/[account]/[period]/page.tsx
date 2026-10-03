@@ -7,7 +7,7 @@ import {
   verifyShareToken,
 } from "@/lib/share-token";
 import PrintButton from "@/app/portal/print-button";
-import { brandColor } from "@/app/portal/brand";
+import { brandColor, brandLogo, brandText } from "@/app/portal/brand";
 
 
 function fmt(n: number, currency: string) {
@@ -85,8 +85,9 @@ export default async function PortalReportPage({
   const { report, account: acc, agency } = data;
   const kpis = report.kpis;
   const brand = (agency?.branding ?? {}) as Record<string, string>;
+  const logo = brandLogo(brand.logo);
   const primary = brandColor(brand.color);
-  const agencyName = brand.name || agency?.name || "Agence";
+  const agencyName = brandText(brand.name) ?? brandText(agency?.name) ?? "Agence";
   const currency = kpis?.currency ?? "EUR";
 
   const detected = kpis?.incidentsDetected ?? 0;
@@ -187,9 +188,9 @@ export default async function PortalReportPage({
           voir de qui vient la pièce. Seule la navigation disparaît. */}
       <header className="rp-head">
         <div className="rp-brand">
-          {brand.logo ? (
+          {logo ? (
             <img
-              src={brand.logo}
+              src={logo}
               alt={agencyName}
               style={{ maxHeight: 34, maxWidth: 180, objectFit: "contain" }}
             />

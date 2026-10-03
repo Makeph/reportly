@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { INK_RED, brandColor } from "../app/portal/brand.ts";
+import { INK_RED, brandColor, brandLogo, brandText } from "../app/portal/brand.ts";
 
 test("une couleur hexadécimale valide est conservée", () => {
   assert.equal(brandColor("#1F6BFF"), "#1F6BFF");
@@ -28,4 +28,24 @@ test("une valeur absente ou d'un autre type retombe sur le défaut", () => {
   assert.equal(brandColor(null), INK_RED);
   assert.equal(brandColor(""), INK_RED);
   assert.equal(brandColor(123), INK_RED);
+});
+
+test("brandText ne laisse passer qu'une chaîne non vide", () => {
+  assert.equal(brandText("Studio Vallier"), "Studio Vallier");
+  assert.equal(brandText("  Acme  "), "Acme");
+  // Le jsonb peut contenir autre chose : un objet rendu par React ferait
+  // échouer la page du portail, celle que voient les clients de l'agence.
+  assert.equal(brandText({ nom: "x" }), undefined);
+  assert.equal(brandText(42), undefined);
+  assert.equal(brandText(""), undefined);
+  assert.equal(brandText(null), undefined);
+});
+
+test("brandLogo n'accepte qu'une URL https", () => {
+  assert.equal(brandLogo("https://cdn.exemple.test/logo.png"), "https://cdn.exemple.test/logo.png");
+  assert.equal(brandLogo("http://cdn.exemple.test/logo.png"), undefined);
+  assert.equal(brandLogo("javascript:alert(1)"), undefined);
+  assert.equal(brandLogo("data:image/svg+xml;base64,AAAA"), undefined);
+  assert.equal(brandLogo("pas une url"), undefined);
+  assert.equal(brandLogo({}), undefined);
 });

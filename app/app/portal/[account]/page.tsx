@@ -10,7 +10,7 @@ import {
   makeShareToken,
   verifyShareToken,
 } from "@/lib/share-token";
-import { brandColor } from "@/app/portal/brand";
+import { brandColor, brandLogo, brandText } from "@/app/portal/brand";
 
 
 export default async function PortalListPage({
@@ -32,8 +32,9 @@ export default async function PortalListPage({
   const token = makeShareToken(account, portalTokenVersion);
 
   const brand = (header.agency?.branding ?? {}) as Record<string, string>;
+  const logo = brandLogo(brand.logo);
   const primary = brandColor(brand.color);
-  const agencyName = brand.name || header.agency?.name || "Agence";
+  const agencyName = brandText(brand.name) ?? brandText(header.agency?.name) ?? "Agence";
   const reports = await listReportsForAccount(account);
 
   return (
@@ -79,9 +80,9 @@ export default async function PortalListPage({
       <style>{`.pl-doc{--brand:${primary}}`}</style>
 
       <header className="pl-head">
-        {brand.logo ? (
+        {logo ? (
           <img
-            src={brand.logo}
+            src={logo}
             alt={agencyName}
             style={{ maxHeight: 34, maxWidth: 180, objectFit: "contain" }}
           />
