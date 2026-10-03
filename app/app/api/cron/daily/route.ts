@@ -90,7 +90,7 @@ async function sendDailyLifecycleEmails(
   const email = await getAgencyOwnerEmail(admin, agency.id);
   if (!email) return;
 
-  const agencyName = agency.name || "votre agence";
+  const agencyName = agency.name || "Votre agence";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
   const dashboardUrl = `${siteUrl}/dashboard`;
   const trialDaysLeft = daysUntil(agency.trial_ends_at);

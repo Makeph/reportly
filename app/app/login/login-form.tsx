@@ -132,11 +132,11 @@ export default function LoginForm({
             <ul className="lg-checklist">
               <li>
                 Il arrive au nom de <b>Reportly</b> — cherchez ce mot dans votre
-                boîte si rien n&apos;apparaît.
+                boîte si rien n’apparaît.
               </li>
               <li>
-                Pensez aux spams et à l&apos;onglet Promotions : c&apos;est là
-                qu&apos;il se cache le plus souvent.
+                Pensez aux spams et à l’onglet Promotions : c’est là
+                qu’il se cache le plus souvent.
               </li>
               <li>
                 Le lien est à usage unique. Demandez-en un nouveau si celui-ci a
@@ -164,7 +164,7 @@ export default function LoginForm({
                   setResent(false);
                 }}
               >
-                Changer d&apos;adresse
+                Changer d’adresse
               </button>
             </div>
 

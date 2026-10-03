@@ -245,7 +245,7 @@ export default function CsvImportPage() {
       <div style={styles.section}>
         <h1 style={styles.h1}>Importer un fichier CSV</h1>
         <p style={styles.muted}>
-          Ajoutez les métriques quotidiennes d&apos;un compte client depuis
+          Ajoutez les métriques quotidiennes d’un compte client depuis
           Matomo, TikTok Ads ou une régie locale.
         </p>
 
@@ -310,13 +310,13 @@ export default function CsvImportPage() {
       <div style={styles.section}>
         <h2 style={styles.h2}>Format attendu</h2>
         <p style={styles.muted}>
-          L&apos;en-tête doit contenir <b>date</b>, <b>spend</b> ou{" "}
+          L’en-tête doit contenir <b>date</b>, <b>spend</b> ou{" "}
           <b>depense</b>, et <b>conversions</b>. La colonne <b>revenue</b> ou{" "}
           <b>revenu</b> est facultative. Les séparateurs « ; » et « , » ainsi
           que les dates YYYY-MM-DD et DD/MM/YYYY sont acceptés.
         </p>
         <a style={styles.btnLink} href="/api/import/csv/exemple">
-          Télécharger un fichier d&apos;exemple
+          Télécharger un fichier d’exemple
         </a>
         <p style={styles.muted}>
           Trente-quatre jours de données réalistes, prêtes à importer — de quoi
@@ -333,7 +333,7 @@ export default function CsvImportPage() {
           }}
         >
           Importez <b>au moins 8 jours consécutifs</b> pour activer la détection
-          d&apos;anomalie. Renseigner le <b>budget mensuel</b> active le suivi du
+          d’anomalie. Renseigner le <b>budget mensuel</b> active le suivi du
           rythme de dépense.
         </div>
       </div>
@@ -342,7 +342,7 @@ export default function CsvImportPage() {
         <div style={styles.section}>
           <h2 style={styles.h2}>Étape suivante</h2>
           <p style={styles.p}>
-            L&apos;import est terminé. Générez le rapport du mois dernier sans
+            L’import est terminé. Générez le rapport du mois dernier sans
             quitter cette page, ou retrouvez le compte dans votre registre.
           </p>
           <div
