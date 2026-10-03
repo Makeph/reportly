@@ -262,7 +262,7 @@ export default async function PortalReportPage({
       </div>
 
       <section className="rp-section">
-        <div className="rp-kick">Ce qui s&apos;est passé</div>
+        <div className="rp-kick">Ce qui s’est passé</div>
         <h2>Synthèse du mois</h2>
         <div className="rp-body">
           {(kpis?.synthesis ?? []).map((p, i) => (
