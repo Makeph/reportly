@@ -7,8 +7,8 @@ import {
   verifyShareToken,
 } from "@/lib/share-token";
 import PrintButton from "@/app/portal/print-button";
+import { brandColor } from "@/app/portal/brand";
 
-const INK_RED = "#BC3A1D";
 
 function fmt(n: number, currency: string) {
   return `${n.toLocaleString("fr-FR")} ${currency}`;
@@ -85,7 +85,7 @@ export default async function PortalReportPage({
   const { report, account: acc, agency } = data;
   const kpis = report.kpis;
   const brand = (agency?.branding ?? {}) as Record<string, string>;
-  const primary = brand.color || INK_RED;
+  const primary = brandColor(brand.color);
   const agencyName = brand.name || agency?.name || "Agence";
   const currency = kpis?.currency ?? "EUR";
 

@@ -10,8 +10,8 @@ import {
   makeShareToken,
   verifyShareToken,
 } from "@/lib/share-token";
+import { brandColor } from "@/app/portal/brand";
 
-const INK_RED = "#BC3A1D";
 
 export default async function PortalListPage({
   params,
@@ -32,7 +32,7 @@ export default async function PortalListPage({
   const token = makeShareToken(account, portalTokenVersion);
 
   const brand = (header.agency?.branding ?? {}) as Record<string, string>;
-  const primary = brand.color || INK_RED;
+  const primary = brandColor(brand.color);
   const agencyName = brand.name || header.agency?.name || "Agence";
   const reports = await listReportsForAccount(account);
 
