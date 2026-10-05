@@ -8,3 +8,4 @@ import "./api-guards.test.ts";
 import "./csv-import-route.test.ts";
 import "./cron-auth.test.ts";
 import "./share-token-revocation.test.ts";
+import "./brand-color.test.ts";

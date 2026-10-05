@@ -7,8 +7,8 @@ import {
   verifyShareToken,
 } from "@/lib/share-token";
 import PrintButton from "@/app/portal/print-button";
+import { brandColor, brandLogo, brandText } from "@/app/portal/brand";
 
-const INK_RED = "#BC3A1D";
 
 function fmt(n: number, currency: string) {
   return `${n.toLocaleString("fr-FR")} ${currency}`;
@@ -85,8 +85,9 @@ export default async function PortalReportPage({
   const { report, account: acc, agency } = data;
   const kpis = report.kpis;
   const brand = (agency?.branding ?? {}) as Record<string, string>;
-  const primary = brand.color || INK_RED;
-  const agencyName = brand.name || agency?.name || "Agence";
+  const logo = brandLogo(brand.logo);
+  const primary = brandColor(brand.color);
+  const agencyName = brandText(brand.name) ?? brandText(agency?.name) ?? "Agence";
   const currency = kpis?.currency ?? "EUR";
 
   const detected = kpis?.incidentsDetected ?? 0;
@@ -187,9 +188,9 @@ export default async function PortalReportPage({
           voir de qui vient la pièce. Seule la navigation disparaît. */}
       <header className="rp-head">
         <div className="rp-brand">
-          {brand.logo ? (
+          {logo ? (
             <img
-              src={brand.logo}
+              src={logo}
               alt={agencyName}
               style={{ maxHeight: 34, maxWidth: 180, objectFit: "contain" }}
             />
@@ -262,7 +263,7 @@ export default async function PortalReportPage({
       </div>
 
       <section className="rp-section">
-        <div className="rp-kick">Ce qui s&apos;est passé</div>
+        <div className="rp-kick">Ce qui s’est passé</div>
         <h2>Synthèse du mois</h2>
         <div className="rp-body">
           {(kpis?.synthesis ?? []).map((p, i) => (

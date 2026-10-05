@@ -392,12 +392,12 @@ export default async function DashboardPage({
       )}
       {sp.connect === "meta_error" && (
         <div className="banner err">
-          La connexion Meta a échoué. Vérifiez l&apos;app Meta puis réessayez.
+          La connexion Meta a échoué. Vérifiez l’app Meta puis réessayez.
         </div>
       )}
       {sp.error === "subscription" && (
         <div className="banner err">
-          Votre essai ou abonnement n&apos;est plus actif. Choisissez un plan
+          Votre essai ou abonnement n’est plus actif. Choisissez un plan
           pour continuer.
         </div>
       )}

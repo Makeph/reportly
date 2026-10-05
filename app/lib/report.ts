@@ -253,7 +253,7 @@ Réponds avec ce JSON exact:
 
   const fallback: Out = {
     synthesis: [
-      `Sur ${periodInline}, la dépense s'élève à ${nf.format(
+      `En ${periodInline}, la dépense s’élève à ${nf.format(
         Math.round(metrics.spend)
       )} ${currency}${
         deltaPct !== null
@@ -272,7 +272,7 @@ Réponds avec ce JSON exact:
           }${roas !== null ? ` et un ROAS de ${nf2.format(roas)}` : ""}.`
         : "Les données de conversion ne sont pas encore disponibles sur ce rapport.",
       incidentsDetected === 0
-        ? "Aucun incident n'a été relevé au cours du mois."
+        ? "Aucun incident n’a été relevé au cours du mois."
         : `${nf.format(incidentsDetected)} incident${s(
             incidentsDetected
           )} relevé${s(incidentsDetected)} au cours du mois, ${
@@ -284,10 +284,10 @@ Réponds avec ce JSON exact:
     highlights: [],
     priority:
       incidentsDetected > incidentsResolved
-        ? "Reprendre les incidents restés ouverts avant d'engager de nouvelles optimisations."
+        ? "Reprendre les incidents restés ouverts avant d’engager de nouvelles optimisations."
         : incidentsDetected > 0
-          ? "Vérifier que les correctifs du mois tiennent avant d'augmenter les budgets."
-          : "Maintenir la surveillance : aucun incident relevé ce mois-ci.",
+          ? "Vérifier que les correctifs du mois tiennent avant d’augmenter les budgets."
+          : "Maintenir la surveillance : aucun incident relevé ce mois-ci.",
   };
   const out = ai ?? fallback;
 
@@ -366,7 +366,7 @@ Réponds avec ce JSON exact:
           getPortalTokenVersion(agency?.branding)
         );
         const message = firstReportReady({
-          agencyName: agency?.name || "votre agence",
+          agencyName: agency?.name || "Votre agence",
           accountName: acc.name,
           portalUrl: `${siteUrl}/portal/${acc.id}/${period}?t=${token}`,
         });
