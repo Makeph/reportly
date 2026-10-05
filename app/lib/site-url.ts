@@ -15,9 +15,18 @@ function trim(value: string | undefined): string {
   return (value ?? "").trim().replace(/\/+$/, "");
 }
 
+/** Une adresse de développement : juste en local, inutilisable dans un e-mail. */
+function isLocal(url: string): boolean {
+  return /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(:|$)/i.test(url);
+}
+
 export function siteUrl(): string {
   const explicit = trim(process.env.NEXT_PUBLIC_SITE_URL);
-  if (explicit) return explicit;
+  // Un réglage explicite l'emporte — sauf s'il désigne la machine du
+  // destinataire. `.env.example` livre `http://localhost:3000`, et cette
+  // valeur de départ survit volontiers jusqu'en production : elle produirait
+  // des liens qui n'ouvrent rien chez personne. Sur Vercel, on l'ignore.
+  if (explicit && !(isLocal(explicit) && process.env.VERCEL)) return explicit;
 
   // Fourni par Vercel, sans protocole — et parfois recopié avec, à la main.
   const vercel = trim(process.env.VERCEL_PROJECT_PRODUCTION_URL).replace(

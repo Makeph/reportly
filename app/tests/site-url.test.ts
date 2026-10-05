@@ -87,3 +87,58 @@ test("aucun repli ne pointe vers un domaine sans certificat", () => {
     () => assert.ok(!siteUrl().includes("app.getreportly.fr"))
   );
 });
+
+test("en local, localhost reste une adresse parfaitement valide", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+      VERCEL: undefined,
+      VERCEL_PROJECT_PRODUCTION_URL: undefined,
+    },
+    () => assert.equal(siteUrl(), "http://localhost:3000")
+  );
+});
+
+test("sur Vercel, un localhost oublié cède au domaine de production", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+      VERCEL: "1",
+      VERCEL_PROJECT_PRODUCTION_URL: "reportly-orpin.vercel.app",
+    },
+    () => assert.equal(siteUrl(), "https://reportly-orpin.vercel.app")
+  );
+});
+
+test("127.0.0.1 est écarté au même titre que localhost", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000",
+      VERCEL: "1",
+      VERCEL_PROJECT_PRODUCTION_URL: "reportly-orpin.vercel.app",
+    },
+    () => assert.equal(siteUrl(), "https://reportly-orpin.vercel.app")
+  );
+});
+
+test("un vrai domaine n'est jamais écarté, même sur Vercel", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_SITE_URL: "https://app.exemple.fr",
+      VERCEL: "1",
+      VERCEL_PROJECT_PRODUCTION_URL: "reportly-orpin.vercel.app",
+    },
+    () => assert.equal(siteUrl(), "https://app.exemple.fr")
+  );
+});
+
+test("un nom d'hôte qui commence par « localhost » n'est pas localhost", () => {
+  withEnv(
+    {
+      NEXT_PUBLIC_SITE_URL: "https://localhost-hub.exemple.fr",
+      VERCEL: "1",
+      VERCEL_PROJECT_PRODUCTION_URL: "reportly-orpin.vercel.app",
+    },
+    () => assert.equal(siteUrl(), "https://localhost-hub.exemple.fr")
+  );
+});
