@@ -3,6 +3,7 @@ import { claudeJson } from "@/lib/anthropic";
 import { sendLifecycleEmail } from "@/lib/email";
 import { firstReportReady } from "@/lib/lifecycle-emails";
 import { getPortalTokenVersion, makeShareToken } from "@/lib/share-token";
+import { siteUrl } from "@/lib/site-url";
 
 const MONTHS_FR = [
   "janvier", "février", "mars", "avril", "mai", "juin",
@@ -360,7 +361,6 @@ Réponds avec ce JSON exact:
             name: string | null;
             branding: Record<string, unknown> | null;
           }>();
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
         const token = makeShareToken(
           acc.id,
           getPortalTokenVersion(agency?.branding)
@@ -368,7 +368,7 @@ Réponds avec ce JSON exact:
         const message = firstReportReady({
           agencyName: agency?.name || "Votre agence",
           accountName: acc.name,
-          portalUrl: `${siteUrl}/portal/${acc.id}/${period}?t=${token}`,
+          portalUrl: `${siteUrl()}/portal/${acc.id}/${period}?t=${token}`,
         });
         await sendLifecycleEmail({ to: email, ...message });
       }

@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getEntitlement, type Entitlement } from "@/lib/billing";
 import { runDailyBrief } from "@/lib/brief";
 import { sendLifecycleEmail } from "@/lib/email";
+import { siteUrl } from "@/lib/site-url";
 import {
   onboardingConnectSource,
   trialEndsSoon,
@@ -91,8 +92,7 @@ async function sendDailyLifecycleEmails(
   if (!email) return;
 
   const agencyName = agency.name || "Votre agence";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
-  const dashboardUrl = `${siteUrl}/dashboard`;
+  const dashboardUrl = `${siteUrl()}/dashboard`;
   const trialDaysLeft = daysUntil(agency.trial_ends_at);
   if (trialDaysLeft <= 3 && trialDaysLeft > 0) {
     const message = trialEndsSoon({

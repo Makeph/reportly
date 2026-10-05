@@ -26,6 +26,7 @@ const MODULE_STUBS = new Map<string, string>([
     }`,
   ],
   ["@/lib/brief", "export async function runDailyBrief() {}"],
+  ["@/lib/site-url", 'export function siteUrl() { return "http://localhost:3000"; }'],
   ["@/lib/email", "export async function sendLifecycleEmail() { return true; }"],
   [
     "@/lib/lifecycle-emails",

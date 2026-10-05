@@ -16,6 +16,7 @@ import {
   plainText,
   shell,
 } from "./email-theme.ts";
+import { siteUrl } from "./site-url.ts";
 
 export type BriefAlert = {
   severity: "red" | "amber" | "green";
@@ -155,9 +156,7 @@ export async function sendBriefEmail(input: BriefEmailInput): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return false;
   const from = sender();
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL || "https://app.getreportly.fr";
-  const { html, text } = renderBrief(input, `${siteUrl}/dashboard`);
+  const { html, text } = renderBrief(input, `${siteUrl()}/dashboard`);
 
   const res = await postToResend({
     from,
