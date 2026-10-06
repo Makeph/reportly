@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isFuturePeriod, isValidPeriod } from "@/lib/period";
 import { claudeJson } from "@/lib/anthropic";
 import { sendLifecycleEmail } from "@/lib/email";
 import { firstReportReady } from "@/lib/lifecycle-emails";
@@ -400,6 +401,8 @@ export async function getPortalHeader(clientAccountId: string) {
   return { account, agency: agency ?? null };
 }
 
+export { isFuturePeriod, isValidPeriod };
+
 export async function getReportForPortal(clientAccountId: string, period: string) {
   const admin = createAdminClient();
   const { data: report } = await admin
@@ -407,6 +410,10 @@ export async function getReportForPortal(clientAccountId: string, period: string
     .select("period, synthesis_md, priority, kpis, published_at")
     .eq("client_account_id", clientAccountId)
     .eq("period", period)
+    // Le portail ne sert que du publié. `published_at` est nullable et le
+    // générateur le renseigne toujours, mais rien dans le schéma ne l'impose :
+    // un import ou un futur brouillon créerait un rapport visible du client.
+    .not("published_at", "is", null)
     .maybeSingle<{
       period: string;
       synthesis_md: string | null;
@@ -426,6 +433,7 @@ export async function listReportsForAccount(clientAccountId: string) {
     .from("report")
     .select("period, published_at, kpis")
     .eq("client_account_id", clientAccountId)
+    .not("published_at", "is", null)
     .order("period", { ascending: false });
   return (data ?? []) as Array<{
     period: string;

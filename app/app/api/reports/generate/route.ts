@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireActiveAgency } from "@/lib/billing";
 import { createClient } from "@/lib/supabase/server";
-import { generateReport, prevMonthPeriod } from "@/lib/report";
+import {
+  generateReport,
+  isFuturePeriod,
+  isValidPeriod,
+  prevMonthPeriod,
+} from "@/lib/report";
 
 // Génération manuelle d'un rapport (depuis le dashboard). Authentifié + vérif RLS.
 export async function POST(request: Request) {
@@ -32,7 +37,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "compte introuvable" }, { status: 404 });
   }
 
-  const result = await generateReport(accountId, period || prevMonthPeriod());
+  // `period` vient du navigateur et descend jusqu'à une fonction service_role.
+  // Mal formée, elle faisait lever une date invalide ; à venir, elle engageait
+  // un appel au fournisseur d'IA pour un mois sans donnée.
+  const periode = period || prevMonthPeriod();
+  if (!isValidPeriod(periode)) {
+    return NextResponse.json(
+      { error: "période attendue au format AAAA-MM" },
+      { status: 400 }
+    );
+  }
+  if (isFuturePeriod(periode)) {
+    return NextResponse.json(
+      { error: "cette période n'est pas encore terminée" },
+      { status: 400 }
+    );
+  }
+
+  const result = await generateReport(accountId, periode);
   if (!result.ok) {
     return NextResponse.json(result, { status: 400 });
   }

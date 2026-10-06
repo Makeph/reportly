@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getReportForPortal, formatPeriodFr } from "@/lib/report";
-import {
-  getPortalTokenVersion,
-  makeShareToken,
-  verifyShareToken,
-} from "@/lib/share-token";
+import { getPortalTokenVersion, verifyShareToken } from "@/lib/share-token";
 import PrintButton from "@/app/portal/print-button";
 import { brandColor, brandLogo, brandText } from "@/app/portal/brand";
 
@@ -80,7 +76,10 @@ export default async function PortalReportPage({
     notFound();
   }
 
-  const token = makeShareToken(account, portalTokenVersion);
+  // On rejoue le jeton reçu plutôt que d'en émettre un neuf : en fabriquer un
+  // à chaque visite repoussait l'expiration de 180 jours, indéfiniment, pour
+  // qui ouvrait un lien avant son terme. Celui-ci est déjà vérifié.
+  const token = encodeURIComponent(sp.t);
 
   const { report, account: acc, agency } = data;
   const kpis = report.kpis;
