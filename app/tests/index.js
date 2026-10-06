@@ -10,3 +10,4 @@ import "./cron-auth.test.ts";
 import "./share-token-revocation.test.ts";
 import "./brand-color.test.ts";
 import "./site-url.test.ts";
+import "./period.test.ts";
