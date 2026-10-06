@@ -52,6 +52,15 @@ async function getAgencyOwnerEmail(
   return data.user?.email ?? null;
 }
 
+// La trace est écrite AVANT l'envoi, pas après.
+//
+// La table porte une contrainte d'unicité (agency_id, kind) : l'insertion
+// est donc elle-même le verrou, atomique côté base. Lire puis écrire
+// laissait deux trous — un échec d'écriture après un envoi réussi, et deux
+// exécutions simultanées passant toutes deux la lecture — qui se soldaient
+// l'un comme l'autre par un second e-mail chez l'agence.
+//
+// Si l'envoi échoue, on rend la réservation pour que le lendemain réessaie.
 async function sendLifecycleEmailOnce(
   admin: ReturnType<typeof createAdminClient>,
   agencyId: string,
@@ -59,26 +68,32 @@ async function sendLifecycleEmailOnce(
   message: EmailTemplate,
   email: string
 ) {
-  const { data: existingEvent, error: selectError } = await admin
-    .from("lifecycle_event")
-    .select("id")
-    .eq("agency_id", agencyId)
-    .eq("kind", kind)
-    .maybeSingle<{ id: string }>();
-
-  if (selectError) throw selectError;
-  if (existingEvent) return;
-
-  const sent = await sendLifecycleEmail({ to: email, ...message });
-  if (!sent) {
-    throw new Error(`Échec de l'envoi lifecycle "${kind}".`);
-  }
-
-  const { error: insertError } = await admin
+  const { error: claimError } = await admin
     .from("lifecycle_event")
     .insert({ agency_id: agencyId, kind });
 
-  if (insertError) throw insertError;
+  // 23505 : violation d'unicité — l'e-mail est déjà parti, rien à faire.
+  if (claimError) {
+    if (claimError.code === "23505") return;
+    throw claimError;
+  }
+
+  let sent = false;
+  try {
+    sent = await sendLifecycleEmail({ to: email, ...message });
+  } finally {
+    if (!sent) {
+      await admin
+        .from("lifecycle_event")
+        .delete()
+        .eq("agency_id", agencyId)
+        .eq("kind", kind);
+    }
+  }
+
+  if (!sent) {
+    throw new Error(`Échec de l'envoi lifecycle "${kind}".`);
+  }
 }
 
 async function sendDailyLifecycleEmails(
